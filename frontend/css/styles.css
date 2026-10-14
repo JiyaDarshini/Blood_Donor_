@@ -437,24 +437,28 @@ a:hover {
   line-height: 1.12;
   letter-spacing: -0.03em;
   margin-bottom: 1.25rem;
-  color: #0f172a;
+  color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.9);
 }
 
 .hero-title span.highlight {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: #ffffff;
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.85), 0 4px 20px rgba(0, 0, 0, 0.9);
 }
 
 .hero-description {
-  font-size: 1.22rem;
-  color: #475569;
+  font-size: 1.25rem;
+  color: #ffffff;
   line-height: 1.6;
   margin-bottom: 2.5rem;
-  max-width: 720px;
+  max-width: 740px;
   margin-left: auto;
   margin-right: auto;
-  font-weight: 450;
+  font-weight: 500;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85), 0 1px 4px rgba(0, 0, 0, 0.95);
 }
 
 .hero-actions {

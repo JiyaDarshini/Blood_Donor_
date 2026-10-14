@@ -280,8 +280,12 @@
     <script src="/js/auth.js"></script>
     <script src="/js/notifications.js"></script>
     <script>
-        // Load live home page statistics
+        // Load live home page statistics & ensure background video plays
         document.addEventListener('DOMContentLoaded', async () => {
+            const bgVideo = document.getElementById('hero-bg-video');
+            if (bgVideo) {
+                bgVideo.play().catch(() => {});
+            }
             try {
                 const reqs = await ApiClient.get('/requests');
                 const donors = await ApiClient.get('/donors');

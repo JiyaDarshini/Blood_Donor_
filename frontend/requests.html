@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Blood Requests Directory – Blood SOS</title>
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <!-- Top Navigation with Logo -->
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS</span>
+                <span class="brand-subtitle">Requests Directory</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link">Home</a></li>
+            <li><a href="/map.html" class="nav-link">Live Map</a></li>
+            <li><a href="/requests.html" class="nav-link active">Blood Requests</a></li>
+        </ul>
+
+        <div class="nav-actions" id="nav-actions">
+            <!-- Rendered by auth.js -->
+        </div>
+    </header>
+
+    <main class="container">
+
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <h1>Emergency Blood Requests</h1>
+                <p>Browse active hospital emergencies requiring compatible blood donations.</p>
+            </div>
+
+            <div class="dashboard-controls">
+                <a href="/map.html" class="btn btn-secondary btn-sm">Explore Map View</a>
+                <a href="/patient-dashboard.html" class="btn btn-sos btn-sm">🚨 Request Blood SOS</a>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                <div style="flex: 1; min-width: 200px;">
+                    <input type="text" id="req-filter-search" class="form-control" placeholder="Search hospital, city...">
+                </div>
+                <div style="width: 160px;">
+                    <select id="req-filter-blood" class="form-control">
+                        <option value="">All Blood Types</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+                <div style="width: 150px;">
+                    <select id="req-filter-urgency" class="form-control">
+                        <option value="">All Urgencies</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+                <div style="width: 150px;">
+                    <select id="req-filter-status" class="form-control">
+                        <option value="">All Statuses</option>
+                        <option value="searching">Searching</option>
+                        <option value="responses_received">Responses In</option>
+                        <option value="fulfilled">Fulfilled</option>
+                    </select>
+                </div>
+                <button class="btn btn-cyan btn-sm" onclick="loadRequests()">Filter</button>
+            </div>
+        </div>
+
+        <!-- Requests Grid -->
+        <div id="requests-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+            <div style="text-align: center; padding: 3rem; color: var(--text-muted); grid-column: 1/-1;">
+                Loading requests...
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer with Logo -->
+    <footer class="footer">
+        <div class="footer-bottom" style="border: none; padding-top: 0;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <img src="/assets/images/bloodsos_logo.png" alt="Logo" style="height: 28px;">
+                <span>Blood SOS Requests Network</span>
+            </div>
+            <span>&copy; 2026 Blood SOS</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadRequests);
+
+        async function loadRequests() {
+            const grid = document.getElementById('requests-grid');
+            const search = document.getElementById('req-filter-search').value;
+            const blood = document.getElementById('req-filter-blood').value;
+            const urgency = document.getElementById('req-filter-urgency').value;
+            const status = document.getElementById('req-filter-status').value;
+
+            try {
+                const params = {};
+                if (blood) params.blood_group = blood;
+                if (urgency) params.urgency = urgency;
+                if (status) params.status = status;
+                if (search) params.city = search;
+
+                const requests = await ApiClient.get('/requests', params);
+                if (!requests || requests.length === 0) {
+                    grid.innerHTML = `
+                        <div style="text-align: center; padding: 3rem; color: var(--text-muted); grid-column: 1/-1;">
+                            No matching blood requests found.
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = requests.map(r => `
+                    <div class="card ${r.urgency === 'critical' ? 'card-glow-red' : ''}" style="display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <span class="badge badge-${r.urgency}">${r.urgency}</span>
+                                <span class="blood-pill">${r.blood_group}</span>
+                            </div>
+
+                            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">
+                                ${r.hospital_name}
+                            </h3>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+                                📍 ${r.hospital_address}, ${r.city}, ${r.state}
+                            </div>
+
+                            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.2rem;">
+                                ${r.description || 'Emergency blood required. Patient under medical care.'}
+                            </p>
+                        </div>
+
+                        <div style="border-top: 1px solid var(--border-subtle); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="font-size: 0.78rem; color: var(--text-muted);">Units Needed:</span>
+                                <strong style="color: var(--text-primary); font-size: 0.95rem; margin-left: 0.25rem;">${r.units_required}</strong>
+                            </div>
+
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="/map.html?lat=${r.latitude || ''}&lon=${r.longitude || ''}&blood=${r.blood_group}" class="btn btn-secondary btn-sm">Map</a>
+                                <a href="/login.html" class="btn btn-primary btn-sm">Respond</a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                grid.innerHTML = `<div style="color: var(--accent-red); grid-column: 1/-1;">Failed to load requests: ${e.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

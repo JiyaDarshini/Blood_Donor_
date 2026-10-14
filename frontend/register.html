@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register – Blood SOS Emergency Network</title>
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS</span>
+                <span class="brand-subtitle">Emergency Network</span>
+            </div>
+        </a>
+        <div class="nav-actions">
+            <a href="/login.html" class="btn btn-secondary btn-sm">Existing User? Sign In</a>
+        </div>
+    </header>
+
+    <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem;">
+        <div class="card card-glow-cyan" style="max-width: 680px; width: 100%; padding: 2.5rem;">
+            
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" style="height: 52px; margin-bottom: 0.75rem;">
+                <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--text-primary);">Create Your Account</h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Join the Blood SOS emergency response platform today.</p>
+            </div>
+
+            <!-- Role Selection Pill Buttons -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                <button type="button" id="role-btn-donor" class="btn btn-primary" style="flex: 1; padding: 0.75rem;" onclick="setRegistrationRole('donor')">
+                    🩸 Blood Donor
+                </button>
+                <button type="button" id="role-btn-patient" class="btn btn-secondary" style="flex: 1; padding: 0.75rem;" onclick="setRegistrationRole('patient')">
+                    🏥 Patient / Requester
+                </button>
+            </div>
+
+            <form id="register-form">
+                <input type="hidden" id="reg-role" value="donor">
+
+                <!-- Basic User Information -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="reg-fullname">Full Name *</label>
+                        <input type="text" id="reg-fullname" class="form-control" placeholder="e.g. Jane Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-email">Email Address *</label>
+                        <input type="email" id="reg-email" class="form-control" placeholder="jane@example.com" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="reg-password">Password (min 6 chars) *</label>
+                        <input type="password" id="reg-password" class="form-control" placeholder="••••••••" minlength="6" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-phone">Phone Number *</label>
+                        <input type="tel" id="reg-phone" class="form-control" placeholder="+1 (555) 000-0000" required>
+                    </div>
+                </div>
+
+                <!-- Donor Specific Fields -->
+                <div id="donor-specific-fields">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="reg-blood-group">Blood Group *</label>
+                            <select id="reg-blood-group" class="form-control">
+                                <option value="A+">A Positive (A+)</option>
+                                <option value="A-">A Negative (A-)</option>
+                                <option value="B+">B Positive (B+)</option>
+                                <option value="B-">B Negative (B-)</option>
+                                <option value="AB+">AB Positive (AB+)</option>
+                                <option value="AB-">AB Negative (AB-)</option>
+                                <option value="O+" selected>O Positive (O+)</option>
+                                <option value="O-">O Negative (O-) [Universal Donor]</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="reg-dob">Date of Birth (Must be 18+) *</label>
+                            <input type="date" id="reg-dob" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-address">Street Address (Private – Never Shared Publicly)</label>
+                        <input type="text" id="reg-address" class="form-control" placeholder="123 Main St, Apt 4">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="reg-city">City *</label>
+                            <input type="text" id="reg-city" class="form-control" placeholder="Austin" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reg-state">State *</label>
+                            <input type="text" id="reg-state" class="form-control" placeholder="TX" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reg-postal">Postal Code</label>
+                            <input type="text" id="reg-postal" class="form-control" placeholder="78701">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="reg-locate-btn" onclick="captureDonorLocation()">
+                            📍 Capture Current GPS Location
+                        </button>
+                        <span id="reg-coords-display" style="font-size: 0.82rem; color: var(--text-muted);">Coordinates optional for exact distance</span>
+                        <input type="hidden" id="reg-latitude">
+                        <input type="hidden" id="reg-longitude">
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.5rem;">
+                        <label style="display: flex; align-items: flex-start; gap: 0.65rem; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer;">
+                            <input type="checkbox" id="reg-consent" checked style="margin-top: 0.2rem;">
+                            <span>I consent to Blood SOS notifying me of nearby matching emergency requests and disclosing my contact details only when I explicitly accept a request.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Patient Specific Fields -->
+                <div id="patient-specific-fields" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="patient-city">City *</label>
+                            <input type="text" id="patient-city" class="form-control" placeholder="Austin">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="patient-state">State *</label>
+                            <input type="text" id="patient-state" class="form-control" placeholder="TX">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="patient-contact-pref">Preferred Contact Method</label>
+                        <select id="patient-contact-pref" class="form-control">
+                            <option value="phone">Phone Call / SMS</option>
+                            <option value="in_app">In-App Chat & Alerts</option>
+                            <option value="email">Email</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" id="reg-submit-btn" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem;">
+                    Complete Registration
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">
+                Already have an account? <a href="/login.html">Sign In</a>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="footer" style="margin-top: 0; padding: 1.5rem 2rem;">
+        <div style="max-width: 1240px; margin: 0 auto; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+            &copy; 2026 Blood SOS. Medical privacy is strictly protected.
+        </div>
+    </footer>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        // Check URL parameter for pre-selecting role
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('role') === 'patient') {
+            setRegistrationRole('patient');
+        }
+
+        function setRegistrationRole(role) {
+            document.getElementById('reg-role').value = role;
+            const donorFields = document.getElementById('donor-specific-fields');
+            const patientFields = document.getElementById('patient-specific-fields');
+            const btnDonor = document.getElementById('role-btn-donor');
+            const btnPatient = document.getElementById('role-btn-patient');
+
+            if (role === 'donor') {
+                donorFields.style.display = 'block';
+                patientFields.style.display = 'none';
+                btnDonor.className = 'btn btn-primary';
+                btnPatient.className = 'btn btn-secondary';
+            } else {
+                donorFields.style.display = 'none';
+                patientFields.style.display = 'block';
+                btnDonor.className = 'btn btn-secondary';
+                btnPatient.className = 'btn btn-primary';
+            }
+        }
+
+        function captureDonorLocation() {
+            const btn = document.getElementById('reg-locate-btn');
+            const display = document.getElementById('reg-coords-display');
+            if ('geolocation' in navigator) {
+                btn.innerText = 'Locating...';
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        document.getElementById('reg-latitude').value = pos.coords.latitude;
+                        document.getElementById('reg-longitude').value = pos.coords.longitude;
+                        btn.innerText = 'GPS Captured ✓';
+                        display.innerText = `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+                        display.style.color = 'var(--accent-emerald)';
+                    },
+                    (err) => {
+                        btn.innerText = 'GPS Denied';
+                        display.innerText = 'Location permission denied. City/State will be used.';
+                    }
+                );
+            }
+        }
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('reg-submit-btn');
+            btn.disabled = true;
+            btn.innerText = 'Creating Account...';
+
+            const role = document.getElementById('reg-role').value;
+            const payload = {
+                full_name: document.getElementById('reg-fullname').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value,
+                phone: document.getElementById('reg-phone').value,
+                role: role
+            };
+
+            if (role === 'donor') {
+                payload.blood_group = document.getElementById('reg-blood-group').value;
+                payload.date_of_birth = document.getElementById('reg-dob').value || null;
+                payload.address = document.getElementById('reg-address').value;
+                payload.city = document.getElementById('reg-city').value;
+                payload.state = document.getElementById('reg-state').value;
+                payload.postal_code = document.getElementById('reg-postal').value;
+                payload.consent_to_share = document.getElementById('reg-consent').checked;
+
+                const lat = document.getElementById('reg-latitude').value;
+                const lon = document.getElementById('reg-longitude').value;
+                if (lat && lon) {
+                    payload.latitude = parseFloat(lat);
+                    payload.longitude = parseFloat(lon);
+                }
+            } else {
+                payload.city = document.getElementById('patient-city').value || 'Austin';
+                payload.state = document.getElementById('patient-state').value || 'TX';
+                payload.preferred_contact_method = document.getElementById('patient-contact-pref').value;
+            }
+
+            try {
+                const res = await Auth.register(payload);
+                showToast('Account registered successfully! Welcome to Blood SOS.', 'success');
+                setTimeout(() => {
+                    if (role === 'donor') window.location.href = '/donor-dashboard.html';
+                    else window.location.href = '/patient-dashboard.html';
+                }, 500);
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.innerText = 'Complete Registration';
+            }
+        });
+    </script>
+</body>
+</html>

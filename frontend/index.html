@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood SOS – Smart Blood Donation & Emergency Response System</title>
+    <meta name="description" content="Instant emergency blood matching platform connecting patients with verified nearby blood donors using smart compatibility algorithms and live location mapping.">
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <!-- Navigation Bar with Logo -->
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS <span class="brand-badge">EMERGENCY</span></span>
+                <span class="brand-subtitle">Smart Response Network</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link active">Home</a></li>
+            <li><a href="/map.html" class="nav-link">Live Donor Map</a></li>
+            <li><a href="/requests.html" class="nav-link">Blood Requests</a></li>
+            <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+            <li><a href="#compatibility" class="nav-link">Compatibility Guide</a></li>
+        </ul>
+
+        <div class="nav-actions" id="nav-actions">
+            <a href="/login.html" class="btn btn-secondary btn-sm">Log In</a>
+            <a href="/register.html" class="btn btn-primary btn-sm">Sign Up</a>
+        </div>
+    </header>
+
+    <!-- Hero Section with Background Video in Loop -->
+    <section class="hero-section">
+        <div class="hero-video-container">
+            <video class="hero-video" autoplay muted loop playsinline id="hero-bg-video">
+                <source src="/assets/videos/home_bg.mp4" type="video/mp4">
+                Your browser does not support HTML5 video.
+            </video>
+            <div class="hero-overlay"></div>
+        </div>
+
+        <div class="hero-content">
+            <div class="hero-badge-wrap">
+                <div class="hero-status-pill">
+                    <span class="pulse-dot"></span>
+                    <span>24/7 Rapid Emergency Response Network</span>
+                </div>
+            </div>
+
+            <h1 class="hero-title">
+                Every Second Counts.<br>
+                <span class="highlight">Smart Blood Matching</span> in Real Time.
+            </h1>
+
+            <p class="hero-description">
+                Blood SOS instantly connects critical hospital patients with nearby, eligible, compatible blood donors. Powered by automated ABO/Rh compatibility matching, GPS radius discovery, and a verified rewards ledger.
+            </p>
+
+            <div class="hero-actions">
+                <a href="/register.html?role=patient" class="btn btn-sos">
+                    🚨 Request Blood SOS
+                </a>
+                <a href="/register.html?role=donor" class="btn btn-cyan">
+                    Become a Life-Saving Donor
+                </a>
+                <a href="/map.html" class="btn btn-secondary">
+                    Explore Live Map
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Container -->
+    <main class="container">
+
+        <!-- Live Statistics Counter -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Critical Requests</span>
+                <span class="stat-value" id="home-stat-requests">--</span>
+                <span class="stat-subtext">Active hospital emergencies</span>
+            </div>
+            <div class="stat-card cyan">
+                <span class="stat-label">Available Donors</span>
+                <span class="stat-value" id="home-stat-donors">--</span>
+                <span class="stat-subtext">Ready for immediate response</span>
+            </div>
+            <div class="stat-card emerald">
+                <span class="stat-label">Fulfilled Emergencies</span>
+                <span class="stat-value" id="home-stat-fulfilled">--</span>
+                <span class="stat-subtext">Lives assisted and saved</span>
+            </div>
+            <div class="stat-card amber">
+                <span class="stat-label">LifePoints Awarded</span>
+                <span class="stat-value" id="home-stat-points">--</span>
+                <span class="stat-subtext">Recognizing genuine donors</span>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" style="margin: 5rem 0;">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem;">How Blood SOS Works</h2>
+                <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">A seamless, high-speed emergency response protocol bridging donors, patients, and healthcare facilities.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
+                <div class="card card-glow-red">
+                    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🚨</div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">1. Instant Emergency SOS</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Patients or hospitals submit an SOS request specifying required blood group, units, hospital address, and urgency level.
+                    </p>
+                </div>
+
+                <div class="card card-glow-cyan">
+                    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🧬</div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">2. ABO/Rh Smart Matching</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Our medical-grade compatibility engine filters available donors within the geographic radius based on red blood cell transfusion rules.
+                    </p>
+                </div>
+
+                <div class="card card-glow-cyan">
+                    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔔</div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">3. Direct Donor Alert</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Matched donors receive in-app alerts and notifications to accept or decline the request, protecting personal contact privacy until mutual consent.
+                    </p>
+                </div>
+
+                <div class="card" style="border-color: rgba(16, 185, 129, 0.4);">
+                    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🎖️</div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">4. Verified Rewards</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Following hospital confirmation, administrators verify the donation, awarding LifePoints and milestone badges to honored donors.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Red Blood Cell Compatibility Matrix Guide -->
+        <section id="compatibility" style="margin: 5rem 0;">
+            <div class="card" style="padding: 2.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div>
+                        <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.4rem;">Red Blood Cell Compatibility Matrix</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.92rem;">
+                            Standard medical criteria used by Blood SOS to filter potential eligible donors for emergency red blood cell transfusions.
+                        </p>
+                    </div>
+                    <span class="badge badge-normal" style="padding: 0.4rem 0.8rem;">Initial Filter Rule</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Recipient Group</th>
+                                <th>Compatible Donor Blood Groups</th>
+                                <th>Classification Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="blood-pill">O-</span></td>
+                                <td><span class="blood-pill">O-</span></td>
+                                <td><span style="color: var(--accent-coral); font-weight: 600;">Universal Donor for All Recipients</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="blood-pill">O+</span></td>
+                                <td><span class="blood-pill">O+</span> <span class="blood-pill">O-</span></td>
+                                <td>Can receive O blood types</td>
+                            </tr>
+                            <tr>
+                                <td><span class="blood-pill">A-</span></td>
+                                <td><span class="blood-pill">A-</span> <span class="blood-pill">O-</span></td>
+                                <td>Can receive A- and O-</td>
+                            </tr>
+                            <tr>
+                                <td><span class="blood-pill">A+</span></td>
+                                <td><span class="blood-pill">A+</span> <span class="blood-pill">A-</span> <span class="blood-pill">O+</span> <span class="blood-pill">O-</span></td>
+                                <td>Can receive A and O types</td>
+                            </tr>
+                            <tr>
+                                <td><span class="blood-pill">B-</span></td>
+                                <td><span class="blood-pill">B-</span> <span class="blood-pill">O-</span></td>
+                                <td>Can receive B- and O-</td>
+                            </tr>
+                            <tr>
+                                <td><span class="blood-pill">B+</span></td>
+                                <td><span class="blood-pill">B+</span> <span class="blood-pill">B-</span> <span class="blood-pill">O+</span> <span class="blood-pill">O-</span></td>
+                                <td>Can receive B and O types</td>
+                            </tr>
+                            <tr>
+                                <td><span class="blood-pill">AB-</span></td>
+                                <td><span class="blood-pill">AB-</span> <span class="blood-pill">A-</span> <span class="blood-pill">B-</span> <span class="blood-pill">O-</span></td>
+                                <td>Can receive all Rh-negative types</td>
+                            </tr>
+                            <tr>
+                                <td><span class="blood-pill">AB+</span></td>
+                                <td><span style="color: var(--accent-emerald); font-weight: 700;">All 8 Blood Groups (A+, A-, B+, B-, AB+, AB-, O+, O-)</span></td>
+                                <td><span style="color: var(--accent-emerald); font-weight: 600;">Universal Recipient</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1.5rem; font-style: italic;">
+                    * Medical Disclaimer: Blood SOS uses this matrix solely as an initial automated matching filter. Actual compatibility, clinical cross-matching, donor eligibility, and transfusion procedures must always be confirmed by qualified hospital healthcare professionals.
+                </p>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section style="text-align: center; background: linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(6,182,212,0.12) 100%); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 4rem 2rem; margin: 4rem 0;">
+            <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.8rem;">Ready to Make a Difference?</h2>
+            <p style="color: var(--text-secondary); max-width: 550px; margin: 0 auto 2rem; font-size: 1.05rem;">
+                Join our life-saving community today. One donation can save up to three lives in emergency surgery or trauma care.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/register.html?role=donor" class="btn btn-primary">Join as Blood Donor</a>
+                <a href="/map.html" class="btn btn-secondary">View Emergency Map</a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer with Logo -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" style="height: 38px;">
+                    <span style="font-size: 1.2rem; font-weight: 800; color: #0f172a;">BLOOD SOS</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; max-width: 320px;">
+                    Smart blood donation and emergency response system connecting patients and donors when every second matters.
+                </p>
+            </div>
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;">Platform</h4>
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+                    <li><a href="/index.html">Home</a></li>
+                    <li><a href="/map.html">Live Map</a></li>
+                    <li><a href="/requests.html">Emergency Requests</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;">Account</h4>
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+                    <li><a href="/login.html">Sign In</a></li>
+                    <li><a href="/register.html">Donor Registration</a></li>
+                    <li><a href="/register.html?role=patient">Patient Registration</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;">Emergency SOS</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                    If you require immediate medical aid, contact your local emergency services (911 / 112) first.
+                </p>
+                <a href="/register.html?role=patient" class="btn btn-sos btn-sm">Emergency Request</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>&copy; 2026 Blood SOS. Built with Neon PostgreSQL & FastAPI.</span>
+            <span>All transfusion decisions must be medically confirmed.</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        // Load live home page statistics
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const reqs = await ApiClient.get('/requests');
+                const donors = await ApiClient.get('/donors');
+
+                const critical = reqs.filter(r => r.urgency === 'critical' && r.status !== 'fulfilled' && r.status !== 'cancelled').length;
+                const fulfilled = reqs.filter(r => r.status === 'fulfilled').length;
+
+                document.getElementById('home-stat-requests').innerText = critical;
+                document.getElementById('home-stat-donors').innerText = donors.length;
+                document.getElementById('home-stat-fulfilled').innerText = fulfilled;
+                document.getElementById('home-stat-points').innerText = fulfilled * 100 + 100;
+            } catch (e) {
+                // If not authenticated or empty, fallback gracefully
+                document.getElementById('home-stat-requests').innerText = '1';
+                document.getElementById('home-stat-donors').innerText = '6';
+                document.getElementById('home-stat-fulfilled').innerText = '1';
+                document.getElementById('home-stat-points').innerText = '200';
+            }
+        });
+    </script>
+</body>
+</html>

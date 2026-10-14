@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrator Console – Blood SOS</title>
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Top Navigation with Logo -->
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS <span class="brand-badge">ADMIN</span></span>
+                <span class="brand-subtitle">Emergency Command Center</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/admin-dashboard.html" class="nav-link active">Admin Dashboard</a></li>
+            <li><a href="/map.html" class="nav-link">Live Map</a></li>
+            <li><a href="/requests.html" class="nav-link">Requests Monitor</a></li>
+            <li><a href="/profile.html" class="nav-link">Profile</a></li>
+        </ul>
+
+        <div class="nav-actions" id="nav-actions">
+            <!-- Populated by auth.js -->
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <h1>
+                    <span>System Administration & Operations</span>
+                </h1>
+                <p>Live database statistics, user compliance, emergency requests oversight, and donation verification.</p>
+            </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Users</span>
+                <span class="stat-value" id="stat-total-users">0</span>
+                <span class="stat-subtext">Registered across roles</span>
+            </div>
+            <div class="stat-card cyan">
+                <span class="stat-label">Available Donors</span>
+                <span class="stat-value" id="stat-available-donors">0</span>
+                <span class="stat-subtext">Active & ready for dispatch</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label" style="color: var(--accent-coral);">Critical Active SOS</span>
+                <span class="stat-value" id="stat-critical-requests" style="color: var(--accent-coral);">0</span>
+                <span class="stat-subtext">Immediate hospital surgeries</span>
+            </div>
+            <div class="stat-card emerald">
+                <span class="stat-label">Fulfilled Requests</span>
+                <span class="stat-value" id="stat-fulfilled-requests">0</span>
+                <span class="stat-subtext">Successfully resolved cases</span>
+            </div>
+            <div class="stat-card cyan">
+                <span class="stat-label">Verified Donations</span>
+                <span class="stat-value" id="stat-verified-donations">0</span>
+                <span class="stat-subtext">Confirmed by hospital</span>
+            </div>
+            <div class="stat-card amber">
+                <span class="stat-label">LifePoints Minted</span>
+                <span class="stat-value" id="stat-total-points">0</span>
+                <span class="stat-subtext">Immutable points ledger</span>
+            </div>
+        </section>
+
+        <!-- Charts Grid (Chart.js) -->
+        <section class="charts-grid">
+            <div class="chart-card">
+                <h3>Blood Requests by Blood Group</h3>
+                <canvas id="chart-blood-group" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Requests by Status Lifecycle</h3>
+                <canvas id="chart-status" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Donor Availability Distribution</h3>
+                <canvas id="chart-availability" height="200"></canvas>
+            </div>
+        </section>
+
+        <!-- Tabbed / Multi-Section Management Tables -->
+        <section style="margin-top: 3.5rem;">
+            
+            <!-- Pending Donation Verification Table -->
+            <div class="card" style="margin-bottom: 2.5rem; border-color: rgba(16, 185, 129, 0.35);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🎖️</span> Pending Donation Verification Queue
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 0.88rem;">Review completed donation records before awarding +100 LifePoints into the immutable ledger.</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Donor Name</th>
+                                <th>Blood Group</th>
+                                <th>Hospital</th>
+                                <th>Donation Date</th>
+                                <th>Status</th>
+                                <th>Verification Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-donations-table-body">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Loading donation records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Management Table with Filter -->
+            <div class="card" style="margin-bottom: 2.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary);">
+                            User & Donor Moderation
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 0.88rem;">Audit users, verify donor accounts, and manage account access.</p>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <input type="text" id="user-search-input" class="form-control" placeholder="Search by name, email, phone..." style="width: 250px;">
+                        <select id="user-role-filter" class="form-control" style="width: 140px;">
+                            <option value="">All Roles</option>
+                            <option value="donor">Donors</option>
+                            <option value="patient">Patients</option>
+                            <option value="admin">Admins</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name & Email</th>
+                                <th>Role</th>
+                                <th>Blood</th>
+                                <th>City</th>
+                                <th>Status</th>
+                                <th>Donor Verification</th>
+                                <th>Moderation</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-table-body">
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Emergency Requests Monitoring Table -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary);">
+                        All Emergency Blood Requests
+                    </h3>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Hospital</th>
+                                <th>Requester</th>
+                                <th>Blood & Units</th>
+                                <th>Urgency</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-requests-table-body">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Loading requests...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer with Logo -->
+    <footer class="footer">
+        <div class="footer-bottom" style="border: none; padding-top: 0;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <img src="/assets/images/bloodsos_logo.png" alt="Logo" style="height: 28px;">
+                <span>Blood SOS Administrator Console</span>
+            </div>
+            <span>&copy; 2026 Blood SOS. Neon PostgreSQL Persistent Storage.</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

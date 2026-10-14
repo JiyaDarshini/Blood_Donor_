@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In – Blood SOS Emergency Response System</title>
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS</span>
+                <span class="brand-subtitle">Emergency Network</span>
+            </div>
+        </a>
+        <div class="nav-actions">
+            <a href="/register.html" class="btn btn-secondary btn-sm">Create Account</a>
+        </div>
+    </header>
+
+    <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
+        <div class="card card-glow-red" style="max-width: 440px; width: 100%; padding: 2.5rem;">
+            
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" style="height: 60px; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5));">
+                <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);">Secure Portal Access</h1>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.35rem;">Enter your credentials to manage alerts and respond.</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email Address</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="you@example.com" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Password</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" id="login-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 0.85rem;">
+                    Sign In to Blood SOS
+                </button>
+            </form>
+
+            <!-- Quick Demo Credentials Box -->
+            <div style="margin-top: 2rem; padding: 1.25rem; background: rgba(255, 255, 255, 0.03); border: 1px dashed var(--border-subtle); border-radius: var(--radius-sm);">
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.6rem;">
+                    ⚡ Fast Testing Demo Accounts:
+                </div>
+                <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="quickFill('admin@bloodsos.org', 'Admin@12345')">Admin</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="quickFill('sarah.connor@example.com', 'Donor@12345')">Donor (O-)</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="quickFill('patient@example.com', 'Patient@12345')">Patient</button>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">
+                Don't have an account? <a href="/register.html">Register here</a>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="footer" style="margin-top: 0; padding: 1.5rem 2rem;">
+        <div style="max-width: 1240px; margin: 0 auto; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+            &copy; 2026 Blood SOS. Protected by role-based server authentication.
+        </div>
+    </footer>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        function quickFill(email, password) {
+            document.getElementById('login-email').value = email;
+            document.getElementById('login-password').value = password;
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-submit-btn');
+
+            btn.disabled = true;
+            btn.innerText = 'Verifying Credentials...';
+
+            try {
+                const res = await Auth.login(email, password);
+                showToast(`Welcome back, ${res.full_name}!`, 'success');
+                setTimeout(() => {
+                    if (res.role === 'admin') window.location.href = '/admin-dashboard.html';
+                    else if (res.role === 'donor') window.location.href = '/donor-dashboard.html';
+                    else window.location.href = '/patient-dashboard.html';
+                }, 400);
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.innerText = 'Sign In to Blood SOS';
+            }
+        });
+    </script>
+</body>
+</html>

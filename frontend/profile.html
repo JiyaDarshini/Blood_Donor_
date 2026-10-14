@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Account Settings – Blood SOS</title>
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <!-- Top Navigation with Logo -->
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS</span>
+                <span class="brand-subtitle">Account Profile</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link">Home</a></li>
+            <li><a href="/map.html" class="nav-link">Live Map</a></li>
+            <li><a href="/profile.html" class="nav-link active">Profile</a></li>
+        </ul>
+
+        <div class="nav-actions" id="nav-actions">
+            <!-- Rendered by auth.js -->
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 800px;">
+
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <h1>Profile & Account Settings</h1>
+                <p>Manage your personal contact details, location, and privacy settings.</p>
+            </div>
+        </div>
+
+        <div class="card card-glow-cyan" style="padding: 2.25rem;">
+            
+            <div style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1.5rem;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-cyan) 100%); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white;">
+                    <span id="profile-avatar">U</span>
+                </div>
+                <div>
+                    <h2 id="profile-name-header" style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">User Name</h2>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+                        <span class="badge badge-normal" id="profile-role-badge">ROLE</span>
+                        <span class="badge badge-available" id="profile-status-badge">ACTIVE</span>
+                    </div>
+                </div>
+            </div>
+
+            <form id="profile-update-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="prof-name">Full Name</label>
+                        <input type="text" id="prof-name" class="form-control" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="prof-email">Email Address</label>
+                        <input type="email" id="prof-email" class="form-control" disabled>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="prof-phone">Phone Number</label>
+                    <input type="tel" id="prof-phone" class="form-control" placeholder="+1 (555) 000-0000">
+                </div>
+
+                <!-- Donor Specific Fields -->
+                <div id="donor-profile-fields">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="prof-blood-group">Blood Group</label>
+                            <select id="prof-blood-group" class="form-control">
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="prof-city">City</label>
+                            <input type="text" id="prof-city" class="form-control">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="prof-state">State</label>
+                            <input type="text" id="prof-state" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="prof-postal">Postal Code</label>
+                            <input type="text" id="prof-postal" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="prof-address">Confidential Street Address (Private)</label>
+                        <input type="text" id="prof-address" class="form-control">
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="submit" id="save-profile-btn" class="btn btn-primary">Save Profile Changes</button>
+                </div>
+            </form>
+
+        </div>
+
+    </main>
+
+    <!-- Footer with Logo -->
+    <footer class="footer">
+        <div class="footer-bottom" style="border: none; padding-top: 0;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <img src="/assets/images/bloodsos_logo.png" alt="Logo" style="height: 28px;">
+                <span>Blood SOS Secure Profile</span>
+            </div>
+            <span>&copy; 2026 Blood SOS</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = Auth.requireAuth();
+            if (!user) return;
+
+            try {
+                const me = await ApiClient.get('/auth/me');
+                document.getElementById('profile-avatar').innerText = me.user.full_name[0].toUpperCase();
+                document.getElementById('profile-name-header').innerText = me.user.full_name;
+                document.getElementById('profile-role-badge').innerText = me.user.role.toUpperCase();
+                document.getElementById('profile-status-badge').innerText = me.user.account_status.toUpperCase();
+
+                document.getElementById('prof-name').value = me.user.full_name;
+                document.getElementById('prof-email').value = me.user.email;
+                document.getElementById('prof-phone').value = me.user.phone || '';
+
+                if (me.user.role === 'donor' && me.profile) {
+                    document.getElementById('donor-profile-fields').style.display = 'block';
+                    document.getElementById('prof-blood-group').value = me.profile.blood_group || 'O+';
+                    document.getElementById('prof-city').value = me.profile.city || '';
+                    document.getElementById('prof-state').value = me.profile.state || '';
+                    document.getElementById('prof-postal').value = me.profile.postal_code || '';
+                    document.getElementById('prof-address').value = me.profile.address || '';
+                } else {
+                    document.getElementById('donor-profile-fields').style.display = 'none';
+                }
+            } catch (e) {
+                showToast('Failed to load profile: ' + e.message, 'error');
+            }
+        });
+
+        document.getElementById('profile-update-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-profile-btn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            const user = Auth.getUser();
+            try {
+                if (user.role === 'donor') {
+                    await ApiClient.put('/donors/me', {
+                        blood_group: document.getElementById('prof-blood-group').value,
+                        city: document.getElementById('prof-city').value,
+                        state: document.getElementById('prof-state').value,
+                        postal_code: document.getElementById('prof-postal').value,
+                        address: document.getElementById('prof-address').value
+                    });
+                }
+                showToast('Profile updated successfully!', 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save Profile Changes';
+            }
+        });
+    </script>
+</body>
+</html>

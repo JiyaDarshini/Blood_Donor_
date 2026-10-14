@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient & Requester Dashboard – Blood SOS</title>
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <!-- Top Navigation with Logo -->
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS</span>
+                <span class="brand-subtitle">Patient Portal</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/patient-dashboard.html" class="nav-link active">Dashboard</a></li>
+            <li><a href="/map.html" class="nav-link">Live Donor Map</a></li>
+            <li><a href="/requests.html" class="nav-link">All Requests</a></li>
+            <li><a href="/profile.html" class="nav-link">Profile Settings</a></li>
+        </ul>
+
+        <div class="nav-actions" id="nav-actions">
+            <!-- Rendered by auth.js -->
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Welcome Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <h1>
+                    <span>Welcome,</span>
+                    <span id="patient-name-display" style="color: var(--accent-cyan);">Requester</span>
+                </h1>
+                <p>Broadcast emergency blood requests, monitor live donor responses, and coordinate transfusions.</p>
+            </div>
+
+            <div class="dashboard-controls">
+                <a href="/map.html" class="btn btn-secondary btn-sm">Find Nearby Donors</a>
+                <button class="btn btn-sos btn-sm" onclick="openSosModal()">🚨 Create SOS Request</button>
+            </div>
+        </div>
+
+        <!-- Prominent Red Emergency SOS Banner -->
+        <section class="sos-banner">
+            <div class="sos-banner-text">
+                <h2>
+                    <span>🚨</span> Urgent Emergency Blood Request
+                </h2>
+                <p>
+                    Require blood immediately for surgery, trauma, or medical emergency? Click below to instantly broadcast an SOS to all verified compatible donors in the area.
+                </p>
+            </div>
+            <button class="btn btn-sos" onclick="openSosModal()" style="font-size: 1.15rem; padding: 1rem 2.2rem;">
+                🚨 INITIATE SOS NOW
+            </button>
+        </section>
+
+        <!-- Patient Blood Requests List -->
+        <section class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary);">
+                    Your Emergency Blood Requests
+                </h3>
+                <button class="btn btn-primary btn-sm" onclick="openSosModal()">+ New Request</button>
+            </div>
+
+            <div id="patient-requests-container">
+                <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    Loading blood requests...
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Emergency SOS Request Creation Modal -->
+    <div class="modal-backdrop" id="sos-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title" style="color: var(--accent-coral); display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🚨</span> Broadcast Emergency Blood SOS
+                </h3>
+                <button class="modal-close" onclick="closeSosModal()">&times;</button>
+            </div>
+            <form id="sos-request-form">
+                <div class="modal-body">
+                    <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                        This form triggers an automated broadcast to all compatible, available donors within the geographic radius.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="sos-blood-group">Required Blood Group *</label>
+                            <select id="sos-blood-group" class="form-control" required>
+                                <option value="A+">A Positive (A+)</option>
+                                <option value="A-">A Negative (A-)</option>
+                                <option value="B+">B Positive (B+)</option>
+                                <option value="B-">B Negative (B-)</option>
+                                <option value="AB+">AB Positive (AB+)</option>
+                                <option value="AB-">AB Negative (AB-)</option>
+                                <option value="O+" selected>O Positive (O+)</option>
+                                <option value="O-">O Negative (O-)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="sos-units">Units Required *</label>
+                            <input type="number" id="sos-units" class="form-control" min="1" max="20" value="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="sos-urgency">Urgency Level *</label>
+                        <select id="sos-urgency" class="form-control" required>
+                            <option value="critical" selected>🚨 Critical (Immediate Transfusion within Hours)</option>
+                            <option value="high">⚠️ High (Needed within 24 Hours)</option>
+                            <option value="normal">Standard (Needed within 48-72 Hours)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="sos-hospital-name">Hospital Name *</label>
+                        <input type="text" id="sos-hospital-name" class="form-control" placeholder="e.g. St. David's Medical Center" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="sos-hospital-address">Hospital Street Address *</label>
+                        <input type="text" id="sos-hospital-address" class="form-control" placeholder="e.g. 919 E 32nd St" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="sos-city">City *</label>
+                            <input type="text" id="sos-city" class="form-control" placeholder="Austin" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="sos-state">State *</label>
+                            <input type="text" id="sos-state" class="form-control" placeholder="TX" required>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="auto-locate-btn">
+                            📍 Use Current Hospital GPS
+                        </button>
+                        <input type="hidden" id="sos-latitude">
+                        <input type="hidden" id="sos-longitude">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="sos-recipient-name">Patient Name / Identifier</label>
+                            <input type="text" id="sos-recipient-name" class="form-control" placeholder="Patient Name (Optional)">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="sos-contact-method">Preferred Contact Method</label>
+                            <select id="sos-contact-method" class="form-control">
+                                <option value="phone" selected>Phone Call</option>
+                                <option value="in_app">In-App Chat</option>
+                                <option value="email">Email</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="sos-description">Medical Notes & Contact Instructions</label>
+                        <textarea id="sos-description" class="form-control" placeholder="Describe doctor's instructions, blood bank room number, contact person..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeSosModal()">Cancel</button>
+                    <button type="submit" id="sos-submit-btn" class="btn btn-sos">Broadcast Emergency SOS</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Request Details Modal -->
+    <div class="modal-backdrop" id="details-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">Emergency Request Tracking</h3>
+                <button class="modal-close" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="details-modal-content">
+                <!-- Populated dynamically by patient.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer with Logo -->
+    <footer class="footer">
+        <div class="footer-bottom" style="border: none; padding-top: 0;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <img src="/assets/images/bloodsos_logo.png" alt="Logo" style="height: 28px;">
+                <span>Blood SOS Patient Response Portal</span>
+            </div>
+            <span>&copy; 2026 Blood SOS. Emergency response platform.</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script src="/js/patient.js"></script>
+</body>
+</html>

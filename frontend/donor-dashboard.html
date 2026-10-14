@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Dashboard – Blood SOS</title>
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <!-- Top Navigation with Logo -->
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS</span>
+                <span class="brand-subtitle">Donor Portal</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/donor-dashboard.html" class="nav-link active">Dashboard</a></li>
+            <li><a href="/map.html" class="nav-link">Live Map</a></li>
+            <li><a href="/requests.html" class="nav-link">Emergency Requests</a></li>
+            <li><a href="/profile.html" class="nav-link">Profile Settings</a></li>
+        </ul>
+
+        <div class="nav-actions" id="nav-actions">
+            <!-- Dynamic user menu rendered by auth.js -->
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Dashboard Welcome & Availability Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <h1>
+                    <span>Welcome back,</span>
+                    <span id="donor-name-display" style="color: var(--accent-coral);">Donor</span>
+                    <span class="blood-pill" id="donor-blood-display">O+</span>
+                    <span id="donor-verified-badge"></span>
+                </h1>
+                <p>Monitor emergency transfusion alerts, manage availability, and earn LifePoints rewards.</p>
+            </div>
+
+            <div class="dashboard-controls">
+                <div class="availability-box">
+                    <span class="switch-label" id="availability-text">Available for SOS Calls</span>
+                    <label class="switch">
+                        <input type="checkbox" id="availability-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="btn btn-cyan btn-sm" onclick="openDonationModal()">+ Log New Donation</button>
+            </div>
+        </div>
+
+        <!-- LifePoints Rewards Wallet Card -->
+        <section class="wallet-card">
+            <div class="wallet-points">
+                <span class="stat-label" style="color: var(--accent-emerald);">LifePoints Rewards Wallet</span>
+                <span class="points-number" id="wallet-points-display">0</span>
+                <span class="points-label" id="wallet-donations-display">0 Verified Donations</span>
+
+                <div style="margin-top: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.2rem;">
+                        <span id="wallet-milestone-text">Next Milestone</span>
+                    </div>
+                    <div class="milestone-progress">
+                        <div class="milestone-bar" id="wallet-milestone-bar" style="width: 15%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+                    Earned Achievement Badges
+                </h4>
+                <div class="badges-grid" id="wallet-badges-container">
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">Loading badges...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Emergency SOS Invitations Section -->
+        <section style="margin-bottom: 3.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🚨</span> Emergency Request Invitations
+                    </h2>
+                    <p style="color: var(--text-secondary); font-size: 0.88rem;">Matching hospital emergencies requiring your compatible blood type in your area.</p>
+                </div>
+                <a href="/map.html" class="btn btn-secondary btn-sm">View Nearby on Map</a>
+            </div>
+
+            <div id="donor-invitations-container">
+                <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                    Loading matching invitations...
+                </div>
+            </div>
+        </section>
+
+        <!-- Points Ledger History Table -->
+        <section class="card">
+            <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-primary);">
+                Verified Donation Ledger & History
+            </h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Points</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th>Date Recorded</th>
+                        </tr>
+                    </thead>
+                    <tbody id="wallet-ledger-container">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading ledger records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal to Log Completed Donation -->
+    <div class="modal-backdrop" id="donation-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">Log Completed Blood Donation</h3>
+                <button class="modal-close" onclick="closeDonationModal()">&times;</button>
+            </div>
+            <form id="log-donation-form">
+                <div class="modal-body">
+                    <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                        Submit details of your completed donation. Once an administrator verifies the record with hospital confirmation, <strong>+100 LifePoints</strong> will be added to your ledger.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label" for="donation-date">Date of Donation *</label>
+                        <input type="date" id="donation-date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="donation-hospital">Hospital or Blood Bank Name *</label>
+                        <input type="text" id="donation-hospital" class="form-control" placeholder="e.g. St. David's Medical Center" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="donation-units">Units Donated</label>
+                        <select id="donation-units" class="form-control">
+                            <option value="1" selected>1 Unit (Standard Whole Blood)</option>
+                            <option value="2">2 Units (Double Red Cells)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="donation-notes">Donation Reference / Doctor Notes</label>
+                        <textarea id="donation-notes" class="form-control" placeholder="Any reference code or certificate details"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeDonationModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit for Verification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer with Logo -->
+    <footer class="footer">
+        <div class="footer-bottom" style="border: none; padding-top: 0;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <img src="/assets/images/bloodsos_logo.png" alt="Logo" style="height: 28px;">
+                <span>Blood SOS Donor Network</span>
+            </div>
+            <span>&copy; 2026 Blood SOS. Thank you for saving lives.</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script src="/js/donor.js"></script>
+</body>
+</html>

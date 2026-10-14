@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Donor Discovery Map – Blood SOS</title>
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+</head>
+<body>
+
+    <!-- Top Navigation with Logo -->
+    <header class="navbar">
+        <a href="/index.html" class="nav-brand">
+            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-title">BLOOD SOS</span>
+                <span class="brand-subtitle">Emergency Map</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link">Home</a></li>
+            <li><a href="/map.html" class="nav-link active">Live Donor Map</a></li>
+            <li><a href="/requests.html" class="nav-link">Blood Requests</a></li>
+        </ul>
+
+        <div class="nav-actions" id="nav-actions">
+            <!-- Rendered by auth.js -->
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 1400px;">
+
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <h1>
+                    <span>Interactive Donor Discovery & Emergency Map</span>
+                </h1>
+                <p>Locate nearby compatible donors and active hospital blood requests in real time.</p>
+            </div>
+
+            <div class="dashboard-controls">
+                <button class="btn btn-secondary btn-sm" id="map-locate-btn">📍 Find Near My Location</button>
+                <a href="/register.html?role=patient" class="btn btn-sos btn-sm">🚨 Create SOS Request</a>
+            </div>
+        </div>
+
+        <!-- Map & Filter Panel Layout -->
+        <div class="map-sidebar">
+            
+            <!-- Controls Panel -->
+            <div class="filter-panel">
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.6rem;">
+                    Discovery Filters
+                </h3>
+
+                <div class="form-group">
+                    <label class="form-label" for="map-blood-filter">Filter by Compatible Recipient</label>
+                    <select id="map-blood-filter" class="form-control">
+                        <option value="">All Blood Groups</option>
+                        <option value="A+">Compatible for A+ Recipient (A+, A-, O+, O-)</option>
+                        <option value="A-">Compatible for A- Recipient (A-, O-)</option>
+                        <option value="B+">Compatible for B+ Recipient (B+, B-, O+, O-)</option>
+                        <option value="B-">Compatible for B- Recipient (B-, O-)</option>
+                        <option value="AB+">Compatible for AB+ Recipient (All Groups)</option>
+                        <option value="AB-">Compatible for AB- Recipient (AB-, A-, B-, O-)</option>
+                        <option value="O+">Compatible for O+ Recipient (O+, O-)</option>
+                        <option value="O-">Compatible for O- Recipient (O- only)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+                        <label class="form-label" style="margin-bottom: 0;">Search Radius</label>
+                        <span id="map-radius-display" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">35 km</span>
+                    </div>
+                    <input type="range" id="map-radius-slider" min="5" max="100" value="35" step="5" style="width: 100%; accent-color: var(--accent-cyan);">
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem;">
+                    <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem;">LEGEND:</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.82rem;">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span style="display: inline-block; width: 14px; height: 14px; background: #ef4444; border-radius: 50%;"></span>
+                            <span>Hospital Emergency SOS</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span style="display: inline-block; width: 14px; height: 14px; background: var(--accent-cyan); border-radius: 50%;"></span>
+                            <span>Available Compatible Donor</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="map-donor-count" style="font-size: 0.95rem; font-weight: 800; color: var(--accent-emerald); text-align: center; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); border-radius: var(--radius-sm); border: 1px solid rgba(16, 185, 129, 0.25);">
+                    Scanning for donors...
+                </div>
+
+                <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">
+                    * Donor privacy notice: Exact donor home addresses are strictly confidential and never displayed on public maps. Only generalized vicinity coordinates are used.
+                </div>
+            </div>
+
+            <!-- Interactive Map Container -->
+            <div>
+                <div id="map-view"></div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer with Logo -->
+    <footer class="footer">
+        <div class="footer-bottom" style="border: none; padding-top: 0;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <img src="/assets/images/bloodsos_logo.png" alt="Logo" style="height: 28px;">
+                <span>Blood SOS Geospatial Response Network</span>
+            </div>
+            <span>OpenStreetMap & Leaflet.js</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script src="/js/map.js"></script>
+</body>
+</html>

@@ -24,6 +24,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
     phone: Optional[str] = None
+    otp_code: Optional[str] = None
     role: str = Field(default="donor", pattern="^(donor|patient|admin)$")
     
     # Optional fields for donor profile creation at registration
@@ -42,6 +43,28 @@ class UserRegister(BaseModel):
     preferred_contact_method: Optional[str] = "phone"
 
 
+class SendOtpRequest(BaseModel):
+    phone: str = Field(..., min_length=7, max_length=25)
+
+
+class SendOtpResponse(BaseModel):
+    success: bool
+    message: str
+    phone: str
+    dev_otp: Optional[str] = None
+
+
+class VerifyOtpRequest(BaseModel):
+    phone: str = Field(..., min_length=7, max_length=25)
+    otp_code: str = Field(..., min_length=4, max_length=10)
+
+
+class VerifyOtpResponse(BaseModel):
+    success: bool
+    message: str
+    phone: str
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -52,6 +75,7 @@ class UserOut(BaseModel):
     full_name: str
     email: str
     phone: Optional[str] = None
+    is_phone_verified: bool = False
     role: str
     account_status: str
     created_at: datetime

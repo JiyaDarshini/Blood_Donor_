@@ -21,6 +21,8 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
+    from app.config import settings
+    settings.ENVIRONMENT = "test"
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)

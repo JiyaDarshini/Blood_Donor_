@@ -49,6 +49,19 @@ def startup_event():
     logger.info("Initializing Blood SOS Database...")
     Base.metadata.create_all(bind=engine)
     try:
+        # Check and migrate columns if needed
+        with engine.connect() as conn:
+            from sqlalchemy import text
+            if "sqlite" in str(engine.url):
+                res = conn.execute(text("PRAGMA table_info(users)")).fetchall()
+                col_names = [r[1] for r in res]
+                if "is_phone_verified" not in col_names:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN is_phone_verified BOOLEAN DEFAULT 0"))
+                    conn.commit()
+    except Exception as e:
+        logger.warning(f"Database column migration note: {e}")
+
+    try:
         seed_database()
         logger.info("Blood SOS Initialized Successfully.")
     except Exception as e:

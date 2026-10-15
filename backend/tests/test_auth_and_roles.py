@@ -89,3 +89,68 @@ def test_role_based_access_control(client):
     # Donor trying to access admin dashboard
     admin_res = client.get("/api/admin/dashboard", headers=headers)
     assert admin_res.status_code == 403
+
+
+def test_send_and_verify_phone_otp(client, db_session):
+    phone = "+919876543210"
+    
+    # 1. Send OTP
+    send_res = client.post("/api/auth/send-otp", json={"phone": phone})
+    assert send_res.status_code == 200
+    data = send_res.json()
+    assert data["success"] is True
+    assert "Verification SMS sent" in data["message"]
+    
+    # Find OTP from DB
+    from app.models import PhoneVerification
+    record = db_session.query(PhoneVerification).filter(PhoneVerification.phone == phone).first()
+    assert record is not None
+    assert record.is_verified is False
+    otp_code = record.otp_code
+
+    # 2. Try invalid OTP
+    bad_verify = client.post("/api/auth/verify-otp", json={"phone": phone, "otp_code": "000000"})
+    assert bad_verify.status_code == 400
+    assert "Invalid verification code" in bad_verify.json()["detail"]
+
+    # 3. Verify with correct OTP
+    good_verify = client.post("/api/auth/verify-otp", json={"phone": phone, "otp_code": otp_code})
+    assert good_verify.status_code == 200
+    assert good_verify.json()["success"] is True
+
+    # 4. Check DB status
+    db_session.refresh(record)
+    assert record.is_verified is True
+
+
+def test_registration_with_verified_phone(client, db_session):
+    phone = "+919999988888"
+    
+    # Send and verify OTP
+    send_res = client.post("/api/auth/send-otp", json={"phone": phone})
+    assert send_res.status_code == 200
+
+    from app.models import PhoneVerification
+    record = db_session.query(PhoneVerification).filter(PhoneVerification.phone == phone).order_by(PhoneVerification.created_at.desc()).first()
+    verify_res = client.post("/api/auth/verify-otp", json={"phone": phone, "otp_code": record.otp_code})
+    assert verify_res.status_code == 200
+
+    # Register user with verified phone
+    reg_payload = {
+        "full_name": "Verified Donor",
+        "email": "verified.donor@example.com",
+        "password": "Password123!",
+        "phone": phone,
+        "role": "donor",
+        "blood_group": "B+",
+        "city": "Chennai",
+        "state": "TN"
+    }
+    reg_res = client.post("/api/auth/register", json=reg_payload)
+    assert reg_res.status_code == 201
+    
+    # Verify user's phone status in DB
+    user = db_session.query(User).filter(User.email == "verified.donor@example.com").first()
+    assert user is not None
+    assert user.is_phone_verified is True
+

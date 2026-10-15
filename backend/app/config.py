@@ -29,8 +29,12 @@ class Settings(BaseSettings):
     SMTP_TLS: bool = os.getenv("SMTP_TLS", "True").lower() in ("true", "1", "yes")
     
     # SMS (Optional)
-    SMS_PROVIDER: str = os.getenv("SMS_PROVIDER", "none")
+    SMS_PROVIDER: str = os.getenv("SMS_PROVIDER", "none")  # none, twilio, fast2sms
     SMS_API_KEY: Optional[str] = os.getenv("SMS_API_KEY", None)
+    TWILIO_ACCOUNT_SID: Optional[str] = os.getenv("TWILIO_ACCOUNT_SID", None)
+    TWILIO_AUTH_TOKEN: Optional[str] = os.getenv("TWILIO_AUTH_TOKEN", None)
+    TWILIO_FROM_PHONE: Optional[str] = os.getenv("TWILIO_FROM_PHONE", None)
+    REQUIRE_PHONE_VERIFICATION: bool = os.getenv("REQUIRE_PHONE_VERIFICATION", "true").lower() in ("true", "1", "yes")
     
     # Environment
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")

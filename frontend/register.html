@@ -66,7 +66,36 @@
 
                     <div class="form-group">
                         <label class="form-label" for="reg-phone">Phone Number *</label>
-                        <input type="tel" id="reg-phone" class="form-control" placeholder="+1 (555) 000-0000" required>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="tel" id="reg-phone" class="form-control" placeholder="+91 9876543210" required oninput="handlePhoneInputChange()">
+                            <button type="button" id="btn-send-otp" class="btn btn-secondary" style="white-space: nowrap; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="sendPhoneOtp()">
+                                📲 Send OTP
+                            </button>
+                        </div>
+                        <div id="phone-verified-status" style="display: none; margin-top: 0.4rem; font-size: 0.82rem; color: var(--accent-emerald); font-weight: 700;">
+                            ✓ Phone Number Verified via SMS
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OTP Verification Box -->
+                <div id="otp-panel" style="display: none; background: #f8fafc; border: 1.5px dashed var(--accent-cyan); border-radius: var(--radius-sm); padding: 1.15rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                        <span style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
+                            <span>📩</span> Enter 6-digit SMS Verification Code *
+                        </span>
+                        <span id="otp-timer-text" style="font-size: 0.8rem; color: var(--text-muted);">Resend in 30s</span>
+                    </div>
+                    <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="reg-otp" class="form-control" placeholder="• • • • • •" maxlength="6" style="max-width: 170px; letter-spacing: 0.35rem; font-size: 1.15rem; font-weight: 700; text-align: center;">
+                        <button type="button" id="btn-verify-otp" class="btn btn-primary btn-sm" style="padding: 0.55rem 1.25rem;" onclick="verifyPhoneOtp()">
+                            Verify Code
+                        </button>
+                        <button type="button" id="btn-resend-otp" class="btn btn-secondary btn-sm" style="display: none; padding: 0.55rem 1rem;" onclick="sendPhoneOtp()">
+                            Resend SMS
+                        </button>
+                    </div>
+                    <div id="otp-sim-alert" style="display: none; margin-top: 0.75rem; padding: 0.6rem 0.85rem; background: #ecfeff; border: 1px solid #a5f3fc; border-radius: var(--radius-sm); font-size: 0.82rem; color: #0e7490;">
                     </div>
                 </div>
 
@@ -221,8 +250,164 @@
             }
         }
 
+        let isPhoneVerified = false;
+        let verifiedPhoneNumber = '';
+        let verifiedOtpCode = '';
+        let otpCooldownTimer = null;
+
+        function handlePhoneInputChange() {
+            const currentPhone = document.getElementById('reg-phone').value.trim();
+            if (isPhoneVerified && currentPhone !== verifiedPhoneNumber) {
+                // If phone was changed after verification, require re-verification
+                isPhoneVerified = false;
+                verifiedPhoneNumber = '';
+                verifiedOtpCode = '';
+                document.getElementById('phone-verified-status').style.display = 'none';
+                const btnSend = document.getElementById('btn-send-otp');
+                btnSend.disabled = false;
+                btnSend.innerText = '📲 Send OTP';
+                btnSend.className = 'btn btn-secondary';
+                btnSend.style.borderColor = '';
+                btnSend.style.color = '';
+            }
+        }
+
+        async function sendPhoneOtp() {
+            const phoneInput = document.getElementById('reg-phone');
+            const phoneVal = phoneInput.value.trim();
+            const digits = phoneVal.replace(/\D/g, '');
+
+            if (!phoneVal || digits.length < 7) {
+                showToast('Please enter a valid phone number (at least 7 digits) before requesting OTP.', 'error');
+                phoneInput.focus();
+                return;
+            }
+
+            const btnSend = document.getElementById('btn-send-otp');
+            btnSend.disabled = true;
+            btnSend.innerText = 'Sending SMS...';
+
+            try {
+                const res = await ApiClient.post('/auth/send-otp', { phone: phoneVal });
+                showToast(res.message || 'Verification SMS sent!', 'success');
+
+                // Open OTP panel
+                document.getElementById('otp-panel').style.display = 'block';
+                document.getElementById('reg-otp').value = '';
+                document.getElementById('reg-otp').focus();
+
+                // If development / simulation OTP is available, display helpful hint
+                const simAlert = document.getElementById('otp-sim-alert');
+                if (res.dev_otp) {
+                    simAlert.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                            <span>📱 <strong>SMS Simulation:</strong> OTP Code is <strong style="font-size: 1rem; letter-spacing: 2px; color: var(--accent-cyan-hover);">${res.dev_otp}</strong></span>
+                            <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;" onclick="fillOtp('${res.dev_otp}')">
+                                Auto-Fill
+                            </button>
+                        </div>
+                    `;
+                    simAlert.style.display = 'block';
+                } else {
+                    simAlert.style.display = 'none';
+                }
+
+                startOtpCooldown(30);
+            } catch (err) {
+                showToast(err.message, 'error');
+                btnSend.disabled = false;
+                btnSend.innerText = '📲 Send OTP';
+            }
+        }
+
+        function fillOtp(code) {
+            document.getElementById('reg-otp').value = code;
+        }
+
+        function startOtpCooldown(seconds) {
+            const btnSend = document.getElementById('btn-send-otp');
+            const btnResend = document.getElementById('btn-resend-otp');
+            const timerText = document.getElementById('otp-timer-text');
+
+            if (otpCooldownTimer) clearInterval(otpCooldownTimer);
+
+            let remaining = seconds;
+            btnSend.disabled = true;
+            btnSend.innerText = `Wait ${remaining}s`;
+            btnResend.style.display = 'none';
+            timerText.innerText = `Resend in ${remaining}s`;
+
+            otpCooldownTimer = setInterval(() => {
+                remaining -= 1;
+                if (remaining <= 0) {
+                    clearInterval(otpCooldownTimer);
+                    btnSend.disabled = false;
+                    btnSend.innerText = '📲 Resend';
+                    btnResend.style.display = 'inline-block';
+                    timerText.innerText = 'Did not receive code? Click Resend SMS.';
+                } else {
+                    btnSend.innerText = `Wait ${remaining}s`;
+                    timerText.innerText = `Resend in ${remaining}s`;
+                }
+            }, 1000);
+        }
+
+        async function verifyPhoneOtp() {
+            const phoneVal = document.getElementById('reg-phone').value.trim();
+            const otpInput = document.getElementById('reg-otp');
+            const otpVal = otpInput.value.trim();
+
+            if (!otpVal || otpVal.length < 4) {
+                showToast('Please enter the 6-digit code received via SMS.', 'error');
+                otpInput.focus();
+                return;
+            }
+
+            const btnVerify = document.getElementById('btn-verify-otp');
+            btnVerify.disabled = true;
+            btnVerify.innerText = 'Verifying...';
+
+            try {
+                const res = await ApiClient.post('/auth/verify-otp', {
+                    phone: phoneVal,
+                    otp_code: otpVal
+                });
+
+                isPhoneVerified = true;
+                verifiedPhoneNumber = phoneVal;
+                verifiedOtpCode = otpVal;
+
+                showToast('Mobile number verified successfully! ✓', 'success');
+
+                // Update UI state
+                document.getElementById('otp-panel').style.display = 'none';
+                document.getElementById('phone-verified-status').style.display = 'block';
+
+                const btnSend = document.getElementById('btn-send-otp');
+                btnSend.disabled = true;
+                btnSend.innerText = '✓ Verified';
+                btnSend.style.borderColor = 'var(--accent-emerald)';
+                btnSend.style.color = 'var(--accent-emerald)';
+
+                if (otpCooldownTimer) clearInterval(otpCooldownTimer);
+            } catch (err) {
+                showToast(err.message, 'error');
+                btnVerify.disabled = false;
+                btnVerify.innerText = 'Verify Code';
+            }
+        }
+
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const phoneVal = document.getElementById('reg-phone').value.trim();
+
+            // Validate that phone number was verified via SMS
+            if (!isPhoneVerified || verifiedPhoneNumber !== phoneVal) {
+                showToast('Please verify your phone number via SMS OTP before registering.', 'error');
+                document.getElementById('reg-phone').focus();
+                return;
+            }
+
             const btn = document.getElementById('reg-submit-btn');
             btn.disabled = true;
             btn.innerText = 'Creating Account...';
@@ -232,7 +417,8 @@
                 full_name: document.getElementById('reg-fullname').value,
                 email: document.getElementById('reg-email').value,
                 password: document.getElementById('reg-password').value,
-                phone: document.getElementById('reg-phone').value,
+                phone: phoneVal,
+                otp_code: verifiedOtpCode,
                 role: role
             };
 

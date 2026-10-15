@@ -1,14 +1,116 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+import re
 from app.database import get_db
-from app.models import User, DonorProfile, PatientProfile
-from app.schemas import UserRegister, UserLogin, Token, UserOut, DonorProfileOut, PatientProfileOut
+from app.models import User, DonorProfile, PatientProfile, PhoneVerification
+from app.schemas import (
+    UserRegister, UserLogin, Token, UserOut, DonorProfileOut, PatientProfileOut,
+    SendOtpRequest, SendOtpResponse, VerifyOtpRequest, VerifyOtpResponse
+)
 from app.security.auth import get_password_hash, verify_password, create_access_token, get_current_active_user
 from app.services.notification_service import create_notification
 from app.services.audit_service import create_audit_log
+from app.services.sms_service import generate_otp, send_otp_sms, normalize_phone_number
+from app.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+@router.post("/send-otp", response_model=SendOtpResponse)
+def send_otp(req: SendOtpRequest, db: Session = Depends(get_db)):
+    clean_phone = normalize_phone_number(req.phone)
+    raw_digits = re.sub(r"[^\d]", "", clean_phone)
+    if len(raw_digits) < 7:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide a valid phone number (at least 7 digits)."
+        )
+
+    # Rate limiting: 30 seconds cooldown between requests for the same number
+    cooldown_cutoff = datetime.utcnow() - timedelta(seconds=30)
+    recent_req = (
+        db.query(PhoneVerification)
+        .filter(PhoneVerification.phone == clean_phone, PhoneVerification.created_at > cooldown_cutoff)
+        .first()
+    )
+    if recent_req:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Please wait 30 seconds before requesting another verification code."
+        )
+
+    otp = generate_otp(6)
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+    verification = PhoneVerification(
+        phone=clean_phone,
+        otp_code=otp,
+        is_verified=False,
+        attempts=0,
+        expires_at=expires_at
+    )
+    db.add(verification)
+    db.commit()
+
+    sms_res = send_otp_sms(clean_phone, otp)
+
+    dev_otp = otp if (settings.ENVIRONMENT == "development" or settings.SMS_PROVIDER == "none") else None
+
+    return SendOtpResponse(
+        success=True,
+        message=f"Verification SMS sent to {clean_phone}.",
+        phone=clean_phone,
+        dev_otp=dev_otp
+    )
+
+
+@router.post("/verify-otp", response_model=VerifyOtpResponse)
+def verify_otp(req: VerifyOtpRequest, db: Session = Depends(get_db)):
+    clean_phone = normalize_phone_number(req.phone)
+    otp_input = req.otp_code.strip()
+
+    verification = (
+        db.query(PhoneVerification)
+        .filter(PhoneVerification.phone == clean_phone, PhoneVerification.is_verified == False)
+        .order_by(PhoneVerification.created_at.desc())
+        .first()
+    )
+
+    if not verification:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No pending verification code found for this phone number. Please request a new OTP."
+        )
+
+    if verification.attempts >= 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Too many incorrect attempts. Please request a new verification code."
+        )
+
+    if datetime.utcnow() > verification.expires_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification code has expired. Please request a new OTP."
+        )
+
+    if verification.otp_code != otp_input:
+        verification.attempts += 1
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code. Please check and try again."
+        )
+
+    verification.is_verified = True
+    db.commit()
+
+    return VerifyOtpResponse(
+        success=True,
+        message="Phone number verified successfully!",
+        phone=clean_phone
+    )
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -29,11 +131,56 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
             detail="Administrator accounts cannot be registered publicly."
         )
 
+    # Phone number verification validation
+    is_phone_verified = False
+    if user_in.phone:
+        clean_phone = normalize_phone_number(user_in.phone)
+        cutoff = datetime.utcnow() - timedelta(minutes=30)
+        verified_rec = (
+            db.query(PhoneVerification)
+            .filter(
+                PhoneVerification.phone == clean_phone,
+                PhoneVerification.is_verified == True,
+                PhoneVerification.created_at >= cutoff
+            )
+            .order_by(PhoneVerification.created_at.desc())
+            .first()
+        )
+
+        if verified_rec:
+            is_phone_verified = True
+        elif user_in.otp_code:
+            active_rec = (
+                db.query(PhoneVerification)
+                .filter(
+                    PhoneVerification.phone == clean_phone,
+                    PhoneVerification.otp_code == user_in.otp_code.strip(),
+                    PhoneVerification.is_verified == False,
+                    PhoneVerification.expires_at >= datetime.utcnow()
+                )
+                .order_by(PhoneVerification.created_at.desc())
+                .first()
+            )
+            if active_rec:
+                active_rec.is_verified = True
+                is_phone_verified = True
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid or expired SMS OTP code provided."
+                )
+        elif settings.REQUIRE_PHONE_VERIFICATION and settings.ENVIRONMENT != "test":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Phone number verification required. Please verify with SMS OTP before completing registration."
+            )
+
     hashed_pw = get_password_hash(user_in.password)
     new_user = User(
         full_name=user_in.full_name,
         email=user_in.email.lower(),
-        phone=user_in.phone,
+        phone=normalize_phone_number(user_in.phone) if user_in.phone else None,
+        is_phone_verified=is_phone_verified,
         password_hash=hashed_pw,
         role=role,
         account_status="active"
@@ -174,6 +321,7 @@ def get_me(current_user: User = Depends(get_current_active_user), db: Session = 
             "full_name": current_user.full_name,
             "email": current_user.email,
             "phone": current_user.phone,
+            "is_phone_verified": getattr(current_user, "is_phone_verified", False),
             "role": current_user.role,
             "account_status": current_user.account_status,
             "created_at": current_user.created_at

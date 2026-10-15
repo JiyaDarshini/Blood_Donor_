@@ -16,6 +16,7 @@ class User(Base):
     full_name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     phone = Column(String(50), nullable=True)
+    is_phone_verified = Column(Boolean, default=False, nullable=False)
     password_hash = Column(Text, nullable=False)
     role = Column(String(50), default="donor", nullable=False)  # admin, donor, patient
     account_status = Column(String(50), default="active", nullable=False)  # active, pending, suspended
@@ -208,3 +209,16 @@ class AuditLog(Base):
 
     # Relationships
     actor = relationship("User", foreign_keys=[actor_user_id])
+
+
+class PhoneVerification(Base):
+    __tablename__ = "phone_verifications"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    phone = Column(String(50), index=True, nullable=False)
+    otp_code = Column(String(10), nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    attempts = Column(Integer, default=0, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+

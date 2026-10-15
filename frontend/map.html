@@ -59,6 +59,14 @@
                 </h3>
 
                 <div class="form-group">
+                    <label class="form-label" for="map-search-input">Search Location (OpenStreetMap)</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="map-search-input" class="form-control" placeholder="e.g. Austin, Apollo Hospital...">
+                        <button class="btn btn-primary btn-sm" id="map-search-btn" type="button" style="white-space: nowrap;">Search</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label" for="map-blood-filter">Filter by Compatible Recipient</label>
                     <select id="map-blood-filter" class="form-control">
                         <option value="">All Blood Groups</option>

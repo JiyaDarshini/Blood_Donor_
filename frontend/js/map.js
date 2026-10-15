@@ -26,10 +26,9 @@ function initMap() {
 
     mapInstance = L.map('map-view').setView([currentCenter.lat, currentCenter.lon], 12);
 
-    // Clean light-themed map tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
+    // Official OpenStreetMap tile layer
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
         maxZoom: 19
     }).addTo(mapInstance);
 
@@ -181,4 +180,53 @@ function setupMapControls() {
             fetchMapData();
         });
     }
+
+    // OpenStreetMap Location Search (Nominatim)
+    const searchBtn = document.getElementById('map-search-btn');
+    const searchInput = document.getElementById('map-search-input');
+
+    const handleSearch = async () => {
+        const query = searchInput?.value?.trim();
+        if (!query) return;
+
+        searchBtn.disabled = true;
+        searchBtn.innerText = 'Searching...';
+
+        try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+
+            if (data && data.length > 0) {
+                const first = data[0];
+                currentCenter = {
+                    lat: parseFloat(first.lat),
+                    lon: parseFloat(first.lon)
+                };
+                mapInstance.setView([currentCenter.lat, currentCenter.lon], 13);
+                fetchMapData();
+                showToast(`Jumped to: ${first.display_name.split(',')[0]}`, 'success');
+            } else {
+                showToast('Location not found on OpenStreetMap.', 'warning');
+            }
+        } catch (err) {
+            console.error('OSM Geocoding error:', err);
+            showToast('Unable to search location at this moment.', 'error');
+        } finally {
+            searchBtn.disabled = false;
+            searchBtn.innerText = 'Search';
+        }
+    };
+
+    if (searchBtn) {
+        searchBtn.addEventListener('click', handleSearch);
+    }
+    if (searchInput) {
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSearch();
+            }
+        });
+    }
 }
+

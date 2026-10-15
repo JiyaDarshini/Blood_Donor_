@@ -21,7 +21,7 @@ def normalize_phone_number(phone: str) -> str:
     return cleaned
 
 
-def send_sms(to_phone: str, message: str) -> Dict[str, Any]:
+def send_sms(to_phone: str, message: str, otp_code: Optional[str] = None) -> Dict[str, Any]:
     """
     Dispatches SMS to target phone number using configured SMS Provider.
     Supports Twilio, Fast2SMS, and local simulation/development mode.
@@ -51,7 +51,7 @@ def send_sms(to_phone: str, message: str) -> Dict[str, Any]:
             logger.error(f"[SMS TWILIO EXCEPTION] {e}")
             return {"success": False, "provider": "twilio", "error": str(e)}
 
-    # Fast2SMS Gateway
+    # Fast2SMS Gateway (Works directly on Indian mobile numbers)
     elif provider == "fast2sms" and settings.SMS_API_KEY:
         try:
             raw_digits = re.sub(r"[^\d]", "", clean_phone)
@@ -63,18 +63,30 @@ def send_sms(to_phone: str, message: str) -> Dict[str, Any]:
                 "authorization": settings.SMS_API_KEY,
                 "Content-Type": "application/json"
             }
-            payload = {
-                "route": "q",
-                "message": message,
-                "language": "english",
-                "flash": 0,
-                "numbers": raw_digits
-            }
+            if otp_code:
+                payload = {
+                    "route": "otp",
+                    "variables_values": otp_code,
+                    "numbers": raw_digits
+                }
+            else:
+                payload = {
+                    "route": "q",
+                    "message": message,
+                    "language": "english",
+                    "flash": 0,
+                    "numbers": raw_digits
+                }
             with httpx.Client(timeout=10.0) as client:
                 resp = client.post(url, json=payload, headers=headers)
                 if resp.status_code == 200:
-                    logger.info(f"[SMS FAST2SMS] Message sent successfully to {raw_digits}")
-                    return {"success": True, "provider": "fast2sms", "message": "SMS dispatched via Fast2SMS"}
+                    data = resp.json() if resp.text else {}
+                    if data.get("return") is True or "request_id" in data or "message" in data:
+                        logger.info(f"[SMS FAST2SMS] Message sent successfully to {raw_digits}: {data}")
+                        return {"success": True, "provider": "fast2sms", "message": "SMS dispatched via Fast2SMS"}
+                    else:
+                        logger.warning(f"[SMS FAST2SMS WARNING] Response: {resp.text}")
+                        return {"success": False, "provider": "fast2sms", "error": resp.text}
                 else:
                     logger.error(f"[SMS FAST2SMS ERROR] HTTP {resp.status_code}: {resp.text}")
                     return {"success": False, "provider": "fast2sms", "error": resp.text}
@@ -99,4 +111,5 @@ def send_sms(to_phone: str, message: str) -> Dict[str, Any]:
 def send_otp_sms(to_phone: str, otp_code: str) -> Dict[str, Any]:
     """Helper to format and send OTP verification SMS."""
     message = f"Blood SOS: Your mobile verification code is {otp_code}. Valid for 10 minutes. Do not share this OTP with anyone."
-    return send_sms(to_phone, message)
+    return send_sms(to_phone, message, otp_code=otp_code)
+

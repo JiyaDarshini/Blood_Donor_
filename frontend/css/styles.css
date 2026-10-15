@@ -135,6 +135,11 @@ a:hover {
   gap: 0.4rem;
 }
 
+.brand-sos {
+  color: #dc2626 !important;
+  font-weight: 800;
+}
+
 .brand-badge {
   font-size: 0.65rem;
   font-weight: 700;

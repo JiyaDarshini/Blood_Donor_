@@ -91,11 +91,6 @@ class Auth {
                     </div>
                 </div>
 
-                <!-- Dashboard Link -->
-                <a href="${dashboardHref}" class="btn btn-secondary btn-sm">
-                    Dashboard
-                </a>
-
                 <!-- User Profile / Logout Menu -->
                 <div style="display: flex; align-items: center; gap: 0.6rem;">
                     <a href="/profile.html" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;" title="View Profile">
@@ -106,6 +101,28 @@ class Auth {
                     </button>
                 </div>
             `;
+
+            // Ensure brand logo links to dashboard when logged in
+            const navBrand = document.querySelector('.nav-brand');
+            if (navBrand) {
+                navBrand.href = dashboardHref;
+            }
+
+            // Ensure nav-links never show "Home" when logged in
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks && (window.location.pathname.includes('map') || window.location.pathname.includes('requests') || window.location.pathname.includes('profile'))) {
+                const isMap = window.location.pathname.includes('map');
+                const isReq = window.location.pathname.includes('requests');
+                const isProf = window.location.pathname.includes('profile');
+                const reqText = user.role === 'patient' ? 'Blood Requests' : 'Emergency Requests';
+                const mapText = user.role === 'patient' ? 'Live Donor Map' : 'Live Map';
+                navLinks.innerHTML = `
+                    <li><a href="${dashboardHref}" class="nav-link">Dashboard</a></li>
+                    <li><a href="/map.html" class="nav-link ${isMap ? 'active' : ''}">${mapText}</a></li>
+                    <li><a href="/requests.html" class="nav-link ${isReq ? 'active' : ''}">${reqText}</a></li>
+                    <li><a href="/profile.html" class="nav-link ${isProf ? 'active' : ''}">Profile Settings</a></li>
+                `;
+            }
 
             // Initialize notification listeners
             if (window.NotificationsManager) {

@@ -24,6 +24,7 @@
             <li><a href="/index.html" class="nav-link">Home</a></li>
             <li><a href="/map.html" class="nav-link">Live Map</a></li>
             <li><a href="/profile.html" class="nav-link active">Profile</a></li>
+            <li><a href="javascript:void(0)" onclick="Auth.logout()" class="nav-link" style="color: #fca5a5 !important;">🚪 Log Out</a></li>
         </ul>
 
         <div class="nav-actions" id="nav-actions">
@@ -117,6 +118,21 @@
                     <button type="submit" id="save-profile-btn" class="btn btn-primary">Save Profile Changes</button>
                 </div>
             </form>
+
+            <!-- Dedicated Account Session & Logout Section -->
+            <div style="margin-top: 2rem; padding: 1.5rem; background: #fff1f2; border: 1px solid #fecdd3; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: #9f1239; margin-bottom: 0.25rem;">
+                        <span>🚪</span> Account Session
+                    </h3>
+                    <p style="font-size: 0.85rem; color: #881337; margin: 0;">
+                        Sign out of your Blood SOS session on this device.
+                    </p>
+                </div>
+                <button type="button" onclick="Auth.logout()" class="btn btn-outline-red" style="font-weight: 700; padding: 0.65rem 1.4rem; background: #ffffff; cursor: pointer;">
+                    🚪 Log Out of Account
+                </button>
+            </div>
 
         </div>
 

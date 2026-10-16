@@ -97,10 +97,12 @@ class Auth {
                 </a>
 
                 <!-- User Profile / Logout Menu -->
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${user.full_name.split(' ')[0]}</span>
-                    <button onclick="Auth.logout()" class="btn btn-outline-red btn-sm" title="Log out">
-                        Exit
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <a href="/profile.html" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;" title="View Profile">
+                        <span>👤</span> <span>${user.full_name.split(' ')[0]}</span>
+                    </a>
+                    <button onclick="Auth.logout()" class="btn btn-outline-red btn-sm" title="Log out of Blood SOS" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                        <span>🚪</span> <span>Log Out</span>
                     </button>
                 </div>
             `;

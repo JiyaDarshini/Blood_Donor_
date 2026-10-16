@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from typing import List
 from app.database import get_db
@@ -19,6 +19,7 @@ def get_my_invitations(
 ):
     invitations = (
         db.query(DonorInvitation)
+        .options(joinedload(DonorInvitation.blood_request).joinedload(BloodRequest.requester))
         .filter(DonorInvitation.donor_id == current_user.id)
         .order_by(DonorInvitation.invited_at.desc())
         .all()

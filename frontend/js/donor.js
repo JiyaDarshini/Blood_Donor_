@@ -6,11 +6,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user = Auth.requireAuth(['donor', 'admin']);
     if (!user) return;
 
-    loadDonorProfile();
-    loadInvitations();
-    loadRewardsAndBadges();
     setupAvailabilityToggle();
     setupDonationForm();
+    Promise.allSettled([
+        loadDonorProfile(),
+        loadInvitations(),
+        loadRewardsAndBadges()
+    ]);
 });
 
 async function loadDonorProfile() {

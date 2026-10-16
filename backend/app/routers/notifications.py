@@ -24,6 +24,23 @@ def get_notifications(
     return notifs
 
 
+@router.get("/unread-count")
+def get_unread_count(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Ultra-lightweight endpoint returning only the unread notifications count.
+    Used for 30s background polling without transferring heavy notification payloads.
+    """
+    unread = (
+        db.query(Notification)
+        .filter(Notification.user_id == current_user.id, Notification.is_read == False)
+        .count()
+    )
+    return {"unread_count": unread}
+
+
 @router.patch("/{notification_id}/read", response_model=NotificationOut)
 def mark_notification_read(
     notification_id: str,

@@ -387,6 +387,21 @@ a:hover {
   color: white;
 }
 
+.btn-white {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  font-weight: 700;
+}
+
+.btn-white:hover {
+  background: #f8fafc !important;
+  color: #dc2626 !important;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
 .btn-secondary {
   background: #f1f5f9;
   color: #1e293b;

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+import math
 from typing import Optional, List
 from app.database import get_db
 from app.models import User, DonorProfile, Donation
@@ -51,9 +53,19 @@ def list_donors(
         query = query.filter(DonorProfile.is_verified == True)
 
     results = query.all()
+    user_ids = [u.id for dp, u in results]
+    donation_counts = {}
+    if user_ids:
+        counts = (
+            db.query(Donation.donor_id, func.count(Donation.id))
+            .filter(Donation.donor_id.in_(user_ids), Donation.donation_status == "verified")
+            .group_by(Donation.donor_id)
+            .all()
+        )
+        donation_counts = dict(counts)
+
     out = []
     for dp, u in results:
-        donation_count = db.query(Donation).filter(Donation.donor_id == u.id, Donation.donation_status == "verified").count()
         out.append(DonorPublicOut(
             donor_id=dp.id,
             user_id=u.id,
@@ -64,7 +76,7 @@ def list_donors(
             availability_status=dp.availability_status,
             is_verified=dp.is_verified,
             last_donation_date=dp.last_donation_date,
-            total_donations=donation_count,
+            total_donations=donation_counts.get(u.id, 0),
             latitude=dp.latitude,
             longitude=dp.longitude
         ))
@@ -83,8 +95,13 @@ def get_nearby_donors(
     """
     Find nearby active, available donors within specified radius (default 25km).
     Supports filtering by compatible blood groups for a given recipient.
+    Uses geographic bounding box in SQL before computing precise haversine distance.
     """
     max_radius = radius_km or settings.DONOR_SEARCH_RADIUS_KM
+
+    # Geographic bounding box pre-filter in SQL using indexed lat/lon columns
+    lat_delta = max_radius / 111.0
+    lon_delta = max_radius / (111.0 * max(0.1, math.cos(math.radians(lat))))
 
     query = (
         db.query(DonorProfile, User)
@@ -92,8 +109,10 @@ def get_nearby_donors(
         .filter(User.account_status == "active")
         .filter(DonorProfile.availability_status == "available")
         .filter(DonorProfile.consent_to_share == True)
-        .filter(DonorProfile.latitude != None)
-        .filter(DonorProfile.longitude != None)
+        .filter(DonorProfile.latitude.isnot(None))
+        .filter(DonorProfile.longitude.isnot(None))
+        .filter(DonorProfile.latitude.between(lat - lat_delta, lat + lat_delta))
+        .filter(DonorProfile.longitude.between(lon - lon_delta, lon + lon_delta))
     )
 
     if compatible_for:
@@ -106,30 +125,43 @@ def get_nearby_donors(
         query = query.filter(DonorProfile.blood_group == blood_group.upper())
 
     records = query.all()
-    nearby_donors = []
+    candidate_matches = []
 
     for dp, u in records:
         dist = haversine_distance(lat, lon, dp.latitude, dp.longitude)
         if dist is not None and dist <= max_radius:
-            donation_count = db.query(Donation).filter(
-                Donation.donor_id == u.id,
-                Donation.donation_status == "verified"
-            ).count()
-            nearby_donors.append(DonorPublicOut(
-                donor_id=dp.id,
-                user_id=u.id,
-                full_name=u.full_name,
-                blood_group=dp.blood_group,
-                city=dp.city,
-                state=dp.state,
-                availability_status=dp.availability_status,
-                is_verified=dp.is_verified,
-                last_donation_date=dp.last_donation_date,
-                distance_km=dist,
-                latitude=dp.latitude,
-                longitude=dp.longitude,
-                total_donations=donation_count
-            ))
+            candidate_matches.append((dp, u, dist))
+
+    # Batch fetch verified donation counts for matched candidate donors
+    matched_user_ids = [u.id for dp, u, dist in candidate_matches]
+    donation_counts = {}
+    if matched_user_ids:
+        counts = (
+            db.query(Donation.donor_id, func.count(Donation.id))
+            .filter(Donation.donor_id.in_(matched_user_ids), Donation.donation_status == "verified")
+            .group_by(Donation.donor_id)
+            .all()
+        )
+        donation_counts = dict(counts)
+
+    nearby_donors = [
+        DonorPublicOut(
+            donor_id=dp.id,
+            user_id=u.id,
+            full_name=u.full_name,
+            blood_group=dp.blood_group,
+            city=dp.city,
+            state=dp.state,
+            availability_status=dp.availability_status,
+            is_verified=dp.is_verified,
+            last_donation_date=dp.last_donation_date,
+            distance_km=dist,
+            latitude=dp.latitude,
+            longitude=dp.longitude,
+            total_donations=donation_counts.get(u.id, 0)
+        )
+        for dp, u, dist in candidate_matches
+    ]
 
     # Sort by distance
     nearby_donors.sort(key=lambda x: x.distance_km or 999999.0)

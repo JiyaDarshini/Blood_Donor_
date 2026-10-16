@@ -6,9 +6,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user = Auth.requireAuth(['patient', 'admin']);
     if (!user) return;
 
-    loadPatientProfile();
-    loadPatientRequests();
     setupSosModal();
+    Promise.allSettled([
+        loadPatientProfile(),
+        loadPatientRequests()
+    ]);
 });
 
 async function loadPatientProfile() {

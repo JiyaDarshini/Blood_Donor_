@@ -1,4 +1,5 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from app.config import get_normalized_database_url
 import logging
@@ -31,6 +32,24 @@ else:
     except Exception as e:
         logger.warning(f"Remote PostgreSQL unavailable ({e}). Falling back to local SQLite database: sqlite:///./blood_sos.db")
         engine = create_engine("sqlite:///./blood_sos.db", connect_args={"check_same_thread": False})
+
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    # Only apply pragmas to sqlite connections
+    if "sqlite" in type(dbapi_connection).__module__:
+        cursor = dbapi_connection.cursor()
+        try:
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA synchronous=NORMAL")
+            cursor.execute("PRAGMA cache_size=-64000")
+            cursor.execute("PRAGMA temp_store=MEMORY")
+            cursor.execute("PRAGMA foreign_keys=ON")
+        except Exception as ex:
+            logger.debug(f"Failed to set sqlite pragma: {ex}")
+        finally:
+            cursor.close()
+
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

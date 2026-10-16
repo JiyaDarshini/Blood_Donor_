@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blood SOS – Smart Blood Donation & Emergency Response System</title>
     <meta name="description" content="Instant emergency blood matching platform connecting patients with verified nearby blood donors using smart compatibility algorithms and live location mapping.">
-    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png?v=2">
     <link rel="stylesheet" href="/css/styles.css?v=12.0">
     <link rel="stylesheet" href="/css/dashboard.css?v=12.0">
 </head>
@@ -14,7 +14,7 @@
     <!-- Navigation Bar with Logo -->
     <header class="navbar">
         <a href="/index.html" class="nav-brand">
-            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <img src="/assets/images/bloodsos_logo.png?v=2" alt="Blood SOS Logo" class="brand-logo">
             <div class="brand-text">
                 <span class="brand-title">BLOOD <span class="brand-sos">SOS</span> <span class="brand-badge">EMERGENCY</span></span>
                 <span class="brand-subtitle">Smart Response Network</span>
@@ -23,8 +23,6 @@
 
         <ul class="nav-links">
             <li><a href="/index.html" class="nav-link active">Home</a></li>
-            <li><a href="/map.html" class="nav-link">Live Donor Map</a></li>
-            <li><a href="/requests.html" class="nav-link">Blood Requests</a></li>
             <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
             <li><a href="#compatibility" class="nav-link">Compatibility Guide</a></li>
         </ul>
@@ -66,11 +64,8 @@
                 <a href="/register.html?role=patient" class="btn btn-sos">
                     🚨 Request Blood SOS
                 </a>
-                <a href="/register.html?role=donor" class="btn btn-cyan">
+                <a href="/register.html?role=donor" class="btn btn-white">
                     Become a Life-Saving Donor
-                </a>
-                <a href="/map.html" class="btn btn-secondary">
-                    Explore Live Map
                 </a>
             </div>
         </div>
@@ -78,30 +73,6 @@
 
     <!-- Main Container -->
     <main class="container">
-
-        <!-- Live Statistics Counter -->
-        <section class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-label">Critical Requests</span>
-                <span class="stat-value" id="home-stat-requests">--</span>
-                <span class="stat-subtext">Active hospital emergencies</span>
-            </div>
-            <div class="stat-card cyan">
-                <span class="stat-label">Available Donors</span>
-                <span class="stat-value" id="home-stat-donors">--</span>
-                <span class="stat-subtext">Ready for immediate response</span>
-            </div>
-            <div class="stat-card emerald">
-                <span class="stat-label">Fulfilled Emergencies</span>
-                <span class="stat-value" id="home-stat-fulfilled">--</span>
-                <span class="stat-subtext">Lives assisted and saved</span>
-            </div>
-            <div class="stat-card amber">
-                <span class="stat-label">LifePoints Awarded</span>
-                <span class="stat-value" id="home-stat-points">--</span>
-                <span class="stat-subtext">Recognizing genuine donors</span>
-            </div>
-        </section>
 
         <!-- How It Works Section -->
         <section id="how-it-works" style="margin: 5rem 0;">
@@ -226,7 +197,7 @@
             </p>
             <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
                 <a href="/register.html?role=donor" class="btn btn-primary">Join as Blood Donor</a>
-                <a href="/map.html" class="btn btn-secondary">View Emergency Map</a>
+                <a href="/register.html?role=patient" class="btn btn-secondary">Request Blood SOS</a>
             </div>
         </section>
 
@@ -237,7 +208,7 @@
         <div class="footer-content">
             <div class="footer-brand">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" style="height: 38px;">
+                    <img src="/assets/images/bloodsos_logo.png?v=2" alt="Blood SOS Logo" style="height: 38px;">
                     <span style="font-size: 1.2rem; font-weight: 800; color: #0f172a;">BLOOD <span class="brand-sos">SOS</span></span>
                 </div>
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; max-width: 320px;">
@@ -248,8 +219,8 @@
                 <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;">Platform</h4>
                 <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
                     <li><a href="/index.html">Home</a></li>
-                    <li><a href="/map.html">Live Map</a></li>
-                    <li><a href="/requests.html">Emergency Requests</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#compatibility">Compatibility Guide</a></li>
                 </ul>
             </div>
             <div>
@@ -280,29 +251,11 @@
     <script src="/js/auth.js"></script>
     <script src="/js/notifications.js"></script>
     <script>
-        // Load live home page statistics & ensure background video plays
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Ensure background video plays smoothly
+        document.addEventListener('DOMContentLoaded', () => {
             const bgVideo = document.getElementById('hero-bg-video');
             if (bgVideo) {
                 bgVideo.play().catch(() => {});
-            }
-            try {
-                const reqs = await ApiClient.get('/requests');
-                const donors = await ApiClient.get('/donors');
-
-                const critical = reqs.filter(r => r.urgency === 'critical' && r.status !== 'fulfilled' && r.status !== 'cancelled').length;
-                const fulfilled = reqs.filter(r => r.status === 'fulfilled').length;
-
-                document.getElementById('home-stat-requests').innerText = critical;
-                document.getElementById('home-stat-donors').innerText = donors.length;
-                document.getElementById('home-stat-fulfilled').innerText = fulfilled;
-                document.getElementById('home-stat-points').innerText = fulfilled * 100 + 100;
-            } catch (e) {
-                // If not authenticated or empty, fallback gracefully
-                document.getElementById('home-stat-requests').innerText = '1';
-                document.getElementById('home-stat-donors').innerText = '6';
-                document.getElementById('home-stat-fulfilled').innerText = '1';
-                document.getElementById('home-stat-points').innerText = '200';
             }
         });
     </script>

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, case
 from datetime import datetime, timedelta
 from typing import Optional, List
 from app.database import get_db
@@ -20,58 +21,84 @@ from app.config import settings
 router = APIRouter(prefix="/requests", tags=["Blood Requests"])
 
 
+def format_requests_out_batch(requests: List[BloodRequest], current_user: User, db: Session) -> List[BloodRequestOut]:
+    if not requests:
+        return []
+
+    req_ids = [r.id for r in requests]
+
+    # Batch compute accepted count and matched count in a single SQL query
+    inv_stats = (
+        db.query(
+            DonorInvitation.blood_request_id,
+            func.count(DonorInvitation.id).label("matched_count"),
+            func.sum(case((DonorInvitation.status == "accepted", 1), else_=0)).label("accepted_count")
+        )
+        .filter(DonorInvitation.blood_request_id.in_(req_ids))
+        .group_by(DonorInvitation.blood_request_id)
+        .all()
+    )
+    stats_map = {row[0]: (row[1], int(row[2] or 0)) for row in inv_stats}
+
+    # Batch check accepted status for current_user if donor
+    user_accepted_req_ids = set()
+    if current_user.role not in ("admin",):
+        accepted_rows = (
+            db.query(DonorInvitation.blood_request_id)
+            .filter(
+                DonorInvitation.blood_request_id.in_(req_ids),
+                DonorInvitation.donor_id == current_user.id,
+                DonorInvitation.status == "accepted"
+            )
+            .all()
+        )
+        user_accepted_req_ids = {row[0] for row in accepted_rows}
+
+    out = []
+    for req in requests:
+        matched_count, accepted_count = stats_map.get(req.id, (0, 0))
+        is_authorized = (
+            current_user.id == req.requester_id or
+            current_user.role == "admin" or
+            req.id in user_accepted_req_ids
+        )
+
+        requester_user = req.requester
+        req_name = requester_user.full_name if requester_user else "Requester"
+        req_phone = requester_user.phone if (is_authorized and requester_user) else "Protected (Accept Request to Reveal)"
+        req_email = requester_user.email if (is_authorized and requester_user) else "Protected"
+
+        out.append(BloodRequestOut(
+            id=req.id,
+            requester_id=req.requester_id,
+            requester_name=req_name,
+            requester_phone=req_phone,
+            requester_email=req_email,
+            blood_group=req.blood_group,
+            units_required=req.units_required,
+            urgency=req.urgency,
+            hospital_name=req.hospital_name,
+            hospital_address=req.hospital_address,
+            city=req.city,
+            state=req.state,
+            latitude=req.latitude,
+            longitude=req.longitude,
+            description=req.description,
+            recipient_name=req.recipient_name,
+            preferred_contact_method=req.preferred_contact_method,
+            status=req.status,
+            expires_at=req.expires_at,
+            created_at=req.created_at,
+            updated_at=req.updated_at,
+            fulfilled_at=req.fulfilled_at,
+            matched_donors_count=matched_count,
+            accepted_donors_count=accepted_count
+        ))
+    return out
+
+
 def format_request_out(req: BloodRequest, current_user: User, db: Session) -> BloodRequestOut:
-    accepted_count = db.query(DonorInvitation).filter(
-        DonorInvitation.blood_request_id == req.id,
-        DonorInvitation.status == "accepted"
-    ).count()
-
-    matched_count = db.query(DonorInvitation).filter(
-        DonorInvitation.blood_request_id == req.id
-    ).count()
-
-    # Privacy check for requester personal contact
-    is_authorized = (
-        current_user.id == req.requester_id or
-        current_user.role == "admin" or
-        db.query(DonorInvitation).filter(
-            DonorInvitation.blood_request_id == req.id,
-            DonorInvitation.donor_id == current_user.id,
-            DonorInvitation.status == "accepted"
-        ).first() is not None
-    )
-
-    requester_user = req.requester
-    req_name = requester_user.full_name if requester_user else "Requester"
-    req_phone = requester_user.phone if (is_authorized and requester_user) else "Protected (Accept Request to Reveal)"
-    req_email = requester_user.email if (is_authorized and requester_user) else "Protected"
-
-    return BloodRequestOut(
-        id=req.id,
-        requester_id=req.requester_id,
-        requester_name=req_name,
-        requester_phone=req_phone,
-        requester_email=req_email,
-        blood_group=req.blood_group,
-        units_required=req.units_required,
-        urgency=req.urgency,
-        hospital_name=req.hospital_name,
-        hospital_address=req.hospital_address,
-        city=req.city,
-        state=req.state,
-        latitude=req.latitude,
-        longitude=req.longitude,
-        description=req.description,
-        recipient_name=req.recipient_name,
-        preferred_contact_method=req.preferred_contact_method,
-        status=req.status,
-        expires_at=req.expires_at,
-        created_at=req.created_at,
-        updated_at=req.updated_at,
-        fulfilled_at=req.fulfilled_at,
-        matched_donors_count=matched_count,
-        accepted_donors_count=accepted_count
-    )
+    return format_requests_out_batch([req], current_user, db)[0]
 
 
 @router.post("", response_model=BloodRequestOut, status_code=status.HTTP_201_CREATED)
@@ -210,7 +237,7 @@ def list_requests(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    query = db.query(BloodRequest)
+    query = db.query(BloodRequest).options(joinedload(BloodRequest.requester))
 
     if current_user.role == "patient" or only_mine:
         query = query.filter(BloodRequest.requester_id == current_user.id)
@@ -234,7 +261,7 @@ def list_requests(
         query = query.filter(BloodRequest.city.ilike(f"%{city}%"))
 
     requests = query.order_by(BloodRequest.created_at.desc()).all()
-    return [format_request_out(r, current_user, db) for r in requests]
+    return format_requests_out_batch(requests, current_user, db)
 
 
 @router.get("/{request_id}", response_model=BloodRequestOut)
@@ -243,7 +270,7 @@ def get_request(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    req = db.query(BloodRequest).filter(BloodRequest.id == request_id).first()
+    req = db.query(BloodRequest).options(joinedload(BloodRequest.requester)).filter(BloodRequest.id == request_id).first()
     if not req:
         raise HTTPException(status_code=404, detail="Blood request not found.")
     return format_request_out(req, current_user, db)

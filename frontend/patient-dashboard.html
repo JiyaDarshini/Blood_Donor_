@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient & Requester Dashboard – Blood SOS</title>
-    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png">
+    <link rel="icon" type="image/png" href="/assets/images/bloodsos_logo.png?v=2">
     <link rel="stylesheet" href="/css/styles.css?v=12.0">
     <link rel="stylesheet" href="/css/dashboard.css?v=12.0">
 </head>
@@ -13,7 +13,7 @@
     <!-- Top Navigation with Logo -->
     <header class="navbar">
         <a href="/index.html" class="nav-brand">
-            <img src="/assets/images/bloodsos_logo.png" alt="Blood SOS Logo" class="brand-logo">
+            <img src="/assets/images/bloodsos_logo.png?v=2" alt="Blood SOS Logo" class="brand-logo">
             <div class="brand-text">
                 <span class="brand-title">BLOOD <span class="brand-sos">SOS</span></span>
                 <span class="brand-subtitle">Patient Portal</span>
@@ -23,7 +23,7 @@
         <ul class="nav-links">
             <li><a href="/patient-dashboard.html" class="nav-link active">Dashboard</a></li>
             <li><a href="/map.html" class="nav-link">Live Donor Map</a></li>
-            <li><a href="/requests.html" class="nav-link">All Requests</a></li>
+            <li><a href="/requests.html" class="nav-link">Blood Requests</a></li>
             <li><a href="/profile.html" class="nav-link">Profile Settings</a></li>
         </ul>
 
@@ -45,8 +45,34 @@
             </div>
 
             <div class="dashboard-controls">
-                <a href="/map.html" class="btn btn-secondary btn-sm">Find Nearby Donors</a>
+                <a href="/map.html" class="btn btn-secondary btn-sm">🗺️ Explore Live Map</a>
+                <a href="/requests.html" class="btn btn-secondary btn-sm">📋 Blood Requests</a>
                 <button class="btn btn-sos btn-sm" onclick="openSosModal()">🚨 Create SOS Request</button>
+            </div>
+        </div>
+
+        <!-- Quick Access Feature Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+            <div class="card card-glow-cyan" style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem;">
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🗺️</div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-primary);">Live Donor Map</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                        View real-time map of verified active donors near your hospital and discover compatible matches instantly.
+                    </p>
+                </div>
+                <a href="/map.html" class="btn btn-cyan btn-sm" style="align-self: flex-start;">Explore Live Map &rarr;</a>
+            </div>
+
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem; border-color: rgba(239, 68, 68, 0.3);">
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-primary);">Blood Requests Directory</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                        Explore all emergency blood requests across hospitals, track statuses, and view donor response rates.
+                    </p>
+                </div>
+                <a href="/requests.html" class="btn btn-secondary btn-sm" style="align-self: flex-start;">Browse Blood Requests &rarr;</a>
             </div>
         </div>
 
@@ -204,7 +230,7 @@
     <footer class="footer">
         <div class="footer-bottom" style="border: none; padding-top: 0;">
             <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <img src="/assets/images/bloodsos_logo.png" alt="Logo" style="height: 28px;">
+                <img src="/assets/images/bloodsos_logo.png?v=2" alt="Logo" style="height: 28px;">
                 <span>Blood SOS Patient Response Portal</span>
             </div>
             <span>&copy; 2026 Blood SOS. Emergency response platform.</span>

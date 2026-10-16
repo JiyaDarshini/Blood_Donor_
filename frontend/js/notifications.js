@@ -49,8 +49,8 @@ class NotificationsManager {
     static async checkUnreadCount() {
         if (!Auth.isLoggedIn()) return;
         try {
-            const notifications = await ApiClient.get('/notifications');
-            const unread = notifications.filter(n => !n.is_read).length;
+            const data = await ApiClient.get('/notifications/unread-count');
+            const unread = data?.unread_count ?? 0;
             const badge = document.getElementById('notification-unread-count');
             if (badge) {
                 if (unread > 0) {

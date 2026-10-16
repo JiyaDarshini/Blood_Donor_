@@ -8,12 +8,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user = Auth.requireAuth(['admin']);
     if (!user) return;
 
-    loadDashboardStats();
-    loadAnalyticsCharts();
-    loadAdminUsers();
-    loadAdminRequests();
-    loadPendingDonations();
     setupAdminFilters();
+    Promise.allSettled([
+        loadDashboardStats(),
+        loadAnalyticsCharts(),
+        loadAdminUsers(),
+        loadAdminRequests(),
+        loadPendingDonations()
+    ]);
 });
 
 async function loadDashboardStats() {
@@ -264,12 +266,21 @@ function setupAdminFilters() {
     const searchInput = document.getElementById('user-search-input');
     const roleSelect = document.getElementById('user-role-filter');
 
-    const applyFilter = () => {
+    let searchTimer = null;
+    const applyFilter = (immediate = false) => {
         const search = searchInput ? searchInput.value : '';
         const role = roleSelect ? roleSelect.value : '';
-        loadAdminUsers({ search, role });
+        if (immediate) {
+            clearTimeout(searchTimer);
+            loadAdminUsers({ search, role });
+        } else {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                loadAdminUsers({ search, role });
+            }, 250);
+        }
     };
 
-    if (searchInput) searchInput.addEventListener('input', applyFilter);
-    if (roleSelect) roleSelect.addEventListener('change', applyFilter);
+    if (searchInput) searchInput.addEventListener('input', () => applyFilter(false));
+    if (roleSelect) roleSelect.addEventListener('change', () => applyFilter(true));
 }

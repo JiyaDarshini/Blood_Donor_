@@ -44,10 +44,10 @@ class DonorProfile(Base):
     city = Column(String(100), index=True, nullable=True)
     state = Column(String(100), index=True, nullable=True)
     postal_code = Column(String(20), nullable=True)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True, index=True)
+    longitude = Column(Float, nullable=True, index=True)
     availability_status = Column(String(50), default="available", index=True)  # available, unavailable, temporarily_unavailable, suspended
-    is_verified = Column(Boolean, default=False)
+    is_verified = Column(Boolean, default=False, index=True)
     last_donation_date = Column(Date, nullable=True)
     consent_to_share = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -108,7 +108,7 @@ class DonorInvitation(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     blood_request_id = Column(String(36), ForeignKey("blood_requests.id", ondelete="CASCADE"), nullable=False, index=True)
     donor_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    status = Column(String(50), default="pending")  # pending, accepted, declined
+    status = Column(String(50), default="pending", index=True)  # pending, accepted, declined
     invited_at = Column(DateTime, default=datetime.utcnow)
     responded_at = Column(DateTime, nullable=True)
 
@@ -129,7 +129,7 @@ class Donation(Base):
     donor_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     requester_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     donation_date = Column(Date, nullable=False)
-    donation_status = Column(String(50), default="completed_pending_verification")  # completed_pending_verification, verified, rejected
+    donation_status = Column(String(50), default="completed_pending_verification", index=True)  # completed_pending_verification, verified, rejected
     verified_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     verified_at = Column(DateTime, nullable=True)
     units_donated = Column(Integer, default=1)

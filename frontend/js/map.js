@@ -42,21 +42,31 @@ function initMap() {
 async function fetchMapData() {
     if (!mapInstance) return;
 
-    donorMarkersLayer.clearLayers();
-    requestMarkersLayer.clearLayers();
-
     const bloodGroupFilter = document.getElementById('map-blood-filter')?.value || '';
     const radiusFilter = parseFloat(document.getElementById('map-radius-slider')?.value || '35');
 
-    // 1. Fetch Nearby Donors
+    // Run donors and requests fetches in parallel
     try {
-        const donors = await ApiClient.get('/donors/nearby', {
-            lat: currentCenter.lat,
-            lon: currentCenter.lon,
-            compatible_for: bloodGroupFilter,
-            radius_km: radiusFilter
-        });
+        const [donors, requests] = await Promise.all([
+            ApiClient.get('/donors/nearby', {
+                lat: currentCenter.lat,
+                lon: currentCenter.lon,
+                compatible_for: bloodGroupFilter,
+                radius_km: radiusFilter
+            }).catch(e => {
+                console.error('Error fetching nearby donors:', e);
+                return [];
+            }),
+            ApiClient.get('/requests').catch(e => {
+                console.error('Error fetching requests for map:', e);
+                return [];
+            })
+        ]);
 
+        donorMarkersLayer.clearLayers();
+        requestMarkersLayer.clearLayers();
+
+        // 1. Render Donors
         const donorCountEl = document.getElementById('map-donor-count');
         if (donorCountEl) donorCountEl.innerText = `${donors.length} Donors Found`;
 
@@ -93,13 +103,8 @@ async function fetchMapData() {
             `);
             donorMarkersLayer.addLayer(marker);
         });
-    } catch (e) {
-        console.error('Error fetching nearby donors:', e);
-    }
 
-    // 2. Fetch Active Requests
-    try {
-        const requests = await ApiClient.get('/requests');
+        // 2. Render Active Requests
         requests.forEach(req => {
             if (!req.latitude || !req.longitude) return;
             if (req.status === 'fulfilled' || req.status === 'cancelled') return;
@@ -137,7 +142,7 @@ async function fetchMapData() {
             requestMarkersLayer.addLayer(marker);
         });
     } catch (e) {
-        console.error('Error fetching requests for map:', e);
+        console.error('Error fetching map data:', e);
     }
 }
 
@@ -174,10 +179,14 @@ function setupMapControls() {
 
     const radiusSlider = document.getElementById('map-radius-slider');
     const radiusDisplay = document.getElementById('map-radius-display');
+    let sliderDebounceTimer = null;
     if (radiusSlider && radiusDisplay) {
         radiusSlider.addEventListener('input', (e) => {
             radiusDisplay.innerText = `${e.target.value} km`;
-            fetchMapData();
+            clearTimeout(sliderDebounceTimer);
+            sliderDebounceTimer = setTimeout(() => {
+                fetchMapData();
+            }, 200);
         });
     }
 

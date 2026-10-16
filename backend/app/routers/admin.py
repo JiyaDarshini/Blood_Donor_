@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, case
 from typing import Optional, List, Dict, Any
 from app.database import get_db
 from app.models import (
@@ -21,33 +21,44 @@ def get_admin_dashboard(
     current_user: User = Depends(require_role(["admin"])),
     db: Session = Depends(get_db)
 ):
-    total_users = db.query(User).count()
-    total_donors = db.query(User).filter(User.role == "donor").count()
-    total_patients = db.query(User).filter(User.role == "patient").count()
+    # 1. User stats grouped by role in a single SQL query
+    user_counts = dict(db.query(User.role, func.count(User.id)).group_by(User.role).all())
+    total_donors = user_counts.get("donor", 0)
+    total_patients = user_counts.get("patient", 0)
+    total_users = sum(user_counts.values())
 
-    verified_donors = (
-        db.query(DonorProfile)
+    # 2. Donor Profile stats in a single conditional aggregation query
+    donor_stats = (
+        db.query(
+            func.sum(case((DonorProfile.is_verified == True, 1), else_=0)),
+            func.sum(case((DonorProfile.availability_status == "available", 1), else_=0))
+        )
         .join(User, DonorProfile.user_id == User.id)
-        .filter(DonorProfile.is_verified == True, User.account_status == "active")
-        .count()
+        .filter(User.account_status == "active")
+        .first()
     )
+    verified_donors = int(donor_stats[0] or 0) if donor_stats else 0
+    available_donors = int(donor_stats[1] or 0) if donor_stats else 0
 
-    available_donors = (
-        db.query(DonorProfile)
-        .join(User, DonorProfile.user_id == User.id)
-        .filter(DonorProfile.availability_status == "available", User.account_status == "active")
-        .count()
+    # 3. Blood Request stats in a single conditional aggregation query
+    req_stats = (
+        db.query(
+            func.count(BloodRequest.id),
+            func.sum(case((
+                (BloodRequest.urgency == "critical") &
+                (BloodRequest.status.in_(["submitted", "searching", "responses_received", "assistance_arranged"])), 1
+            ), else_=0)),
+            func.sum(case((BloodRequest.status == "fulfilled", 1), else_=0)),
+            func.sum(case((BloodRequest.status.in_(["cancelled", "expired"]), 1), else_=0))
+        )
+        .first()
     )
+    total_requests = int(req_stats[0] or 0) if req_stats else 0
+    critical_active = int(req_stats[1] or 0) if req_stats else 0
+    fulfilled_requests = int(req_stats[2] or 0) if req_stats else 0
+    cancelled_requests = int(req_stats[3] or 0) if req_stats else 0
 
-    total_requests = db.query(BloodRequest).count()
-    critical_active = db.query(BloodRequest).filter(
-        BloodRequest.urgency == "critical",
-        BloodRequest.status.in_(["submitted", "searching", "responses_received", "assistance_arranged"])
-    ).count()
-
-    fulfilled_requests = db.query(BloodRequest).filter(BloodRequest.status == "fulfilled").count()
-    cancelled_requests = db.query(BloodRequest).filter(BloodRequest.status.in_(["cancelled", "expired"])).count()
-
+    # 4. Verified Donations and Total Points
     verified_donations = db.query(Donation).filter(Donation.donation_status == "verified").count()
     total_points = db.query(func.coalesce(func.sum(RewardTransaction.points), 0)).scalar() or 0
 
@@ -76,7 +87,10 @@ def get_admin_users(
     current_user: User = Depends(require_role(["admin"])),
     db: Session = Depends(get_db)
 ):
-    query = db.query(User)
+    query = db.query(User).options(
+        joinedload(User.donor_profile),
+        joinedload(User.patient_profile)
+    )
 
     if role:
         query = query.filter(User.role == role)

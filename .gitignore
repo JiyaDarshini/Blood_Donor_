@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.db
+*.db-*
 *.sqlite3
 .env
 .pytest_cache/
@@ -9,3 +10,5 @@ venv/
 env/
 .idea/
 .vscode/
+scratch/
+backend/scratch/

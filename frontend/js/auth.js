@@ -113,14 +113,12 @@ class Auth {
             if (navLinks && (window.location.pathname.includes('map') || window.location.pathname.includes('requests') || window.location.pathname.includes('profile'))) {
                 const isMap = window.location.pathname.includes('map');
                 const isReq = window.location.pathname.includes('requests');
-                const isProf = window.location.pathname.includes('profile');
                 const reqText = user.role === 'patient' ? 'Blood Requests' : 'Emergency Requests';
                 const mapText = user.role === 'patient' ? 'Live Donor Map' : 'Live Map';
                 navLinks.innerHTML = `
                     <li><a href="${dashboardHref}" class="nav-link">Dashboard</a></li>
                     <li><a href="/map.html" class="nav-link ${isMap ? 'active' : ''}">${mapText}</a></li>
                     <li><a href="/requests.html" class="nav-link ${isReq ? 'active' : ''}">${reqText}</a></li>
-                    <li><a href="/profile.html" class="nav-link ${isProf ? 'active' : ''}">Profile Settings</a></li>
                 `;
             }
 

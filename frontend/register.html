@@ -24,22 +24,90 @@
     </header>
 
     <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem;">
-        <div class="card card-glow-cyan" style="max-width: 680px; width: 100%; padding: 2.5rem;">
-            
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <img src="/assets/images/bloodsos_logo.png?v=2" alt="Blood SOS Logo" style="height: 52px; margin-bottom: 0.75rem;">
-                <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--text-primary);">Create Your Account</h1>
-                <p style="color: var(--text-secondary); font-size: 0.9rem;">Join the Blood SOS emergency response platform today.</p>
+        
+        <!-- STEP 1: Select Role (Donor vs. Patient) First -->
+        <div id="step-role-selection" class="card card-glow-cyan" style="max-width: 760px; width: 100%; padding: 2.5rem;">
+            <div style="text-align: center; margin-bottom: 2.5rem;">
+                <img src="/assets/images/bloodsos_logo.png?v=2" alt="Blood SOS Logo" style="height: 56px; margin-bottom: 0.75rem;">
+                <div style="display: inline-block; padding: 0.35rem 0.9rem; background: rgba(239, 68, 68, 0.1); color: var(--accent-coral); border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 700; margin-bottom: 0.6rem;">
+                    STEP 1 OF 2 &bull; CHOOSE ACCOUNT TYPE
+                </div>
+                <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.4rem;">Select Your Role to Continue</h1>
+                <p style="color: var(--text-secondary); font-size: 0.92rem; max-width: 520px; margin: 0 auto;">
+                    Select whether you are joining as a life-saving blood donor or requesting emergency blood for medical care.
+                </p>
             </div>
 
-            <!-- Role Selection Pill Buttons -->
-            <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-                <button type="button" id="role-btn-donor" class="btn btn-primary" style="flex: 1; padding: 0.75rem;" onclick="setRegistrationRole('donor')">
-                    🩸 Blood Donor
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                
+                <!-- Donor Option Card -->
+                <div class="role-choice-card" onclick="selectRoleAndProceed('donor')">
+                    <div>
+                        <div style="font-size: 3.2rem; margin-bottom: 0.75rem;">🩸</div>
+                        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Blood Donor</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                            I want to donate blood and respond to critical hospital emergency requests in my area.
+                        </p>
+                        <ul style="text-align: left; list-style: none; padding: 0; margin: 0 0 1.5rem 0; font-size: 0.84rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.5rem;">
+                            <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--accent-emerald); font-weight: 800;">✓</span> Instant compatibility alerts</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--accent-emerald); font-weight: 800;">✓</span> Earn verified LifePoints</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--accent-emerald); font-weight: 800;">✓</span> Strict contact privacy protection</li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-primary" style="width: 100%; padding: 0.8rem; font-size: 0.95rem;">
+                        Register as Blood Donor &rarr;
+                    </button>
+                </div>
+
+                <!-- Patient Option Card -->
+                <div class="role-choice-card patient-card" onclick="selectRoleAndProceed('patient')">
+                    <div>
+                        <div style="font-size: 3.2rem; margin-bottom: 0.75rem;">🏥</div>
+                        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Patient / Requester</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                            I or my hospital need to broadcast an urgent emergency blood SOS to find compatible donors.
+                        </p>
+                        <ul style="text-align: left; list-style: none; padding: 0; margin: 0 0 1.5rem 0; font-size: 0.84rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.5rem;">
+                            <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--accent-cyan); font-weight: 800;">✓</span> 24/7 Rapid SOS broadcasting</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--accent-cyan); font-weight: 800;">✓</span> Real-time donor discovery map</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--accent-cyan); font-weight: 800;">✓</span> Live hospital response tracking</li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-secondary" style="width: 100%; padding: 0.8rem; font-size: 0.95rem; border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 700;">
+                        Register as Patient &rarr;
+                    </button>
+                </div>
+
+            </div>
+
+            <div style="text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
+                Already have an account? <a href="/login.html" style="font-weight: 700; color: var(--accent-cyan);">Sign In</a>
+            </div>
+        </div>
+
+        <!-- STEP 2: Profile Details Setup (Only shown after role selection) -->
+        <div id="step-profile-setup" class="card card-glow-cyan" style="display: none; max-width: 680px; width: 100%; padding: 2.5rem;">
+            
+            <!-- Step 2 Header & Switch Role Control -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding: 0.75rem 1rem; background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span style="font-size: 0.82rem; color: var(--text-muted);">Account Type:</span>
+                    <span id="step2-role-badge" style="display: inline-block; padding: 0.25rem 0.65rem; border: 1px solid; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 800;">
+                        🩸 Blood Donor
+                    </span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="goToStep1()" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                    &larr; Change Role
                 </button>
-                <button type="button" id="role-btn-patient" class="btn btn-secondary" style="flex: 1; padding: 0.75rem;" onclick="setRegistrationRole('patient')">
-                    🏥 Patient / Requester
-                </button>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1 id="step2-title" style="font-size: 1.7rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.4rem;">
+                    Set Up Your Profile Details
+                </h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    Fill in your verified profile details to finalize your Blood SOS account.
+                </p>
             </div>
 
             <form id="register-form">
@@ -188,7 +256,7 @@
             </form>
 
             <div style="text-align: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">
-                Already have an account? <a href="/login.html">Sign In</a>
+                Already have an account? <a href="/login.html" style="font-weight: 700; color: var(--accent-cyan);">Sign In</a>
             </div>
 
         </div>
@@ -203,31 +271,72 @@
     <script src="/js/api.js"></script>
     <script src="/js/auth.js"></script>
     <script>
-        // Check URL parameter for pre-selecting role
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('role') === 'patient') {
-            setRegistrationRole('patient');
+        function selectRoleAndProceed(role) {
+            setRegistrationRole(role);
+            document.getElementById('step-role-selection').style.display = 'none';
+            document.getElementById('step-profile-setup').style.display = 'block';
+
+            const roleBadge = document.getElementById('step2-role-badge');
+            const step2Title = document.getElementById('step2-title');
+            if (role === 'donor') {
+                roleBadge.innerHTML = '🩸 Blood Donor';
+                roleBadge.style.color = '#ef4444';
+                roleBadge.style.background = '#fef2f2';
+                roleBadge.style.borderColor = '#fca5a5';
+                step2Title.innerText = 'Donor Profile Details Setup';
+            } else {
+                roleBadge.innerHTML = '🏥 Patient / Requester';
+                roleBadge.style.color = '#0284c7';
+                roleBadge.style.background = '#f0f9ff';
+                roleBadge.style.borderColor = '#bae6fd';
+                step2Title.innerText = 'Patient Profile Details Setup';
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goToStep1() {
+            document.getElementById('step-profile-setup').style.display = 'none';
+            document.getElementById('step-role-selection').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function setRegistrationRole(role) {
             document.getElementById('reg-role').value = role;
             const donorFields = document.getElementById('donor-specific-fields');
             const patientFields = document.getElementById('patient-specific-fields');
-            const btnDonor = document.getElementById('role-btn-donor');
-            const btnPatient = document.getElementById('role-btn-patient');
+            const regCity = document.getElementById('reg-city');
+            const regState = document.getElementById('reg-state');
+            const patientCity = document.getElementById('patient-city');
+            const patientState = document.getElementById('patient-state');
 
             if (role === 'donor') {
                 donorFields.style.display = 'block';
                 patientFields.style.display = 'none';
-                btnDonor.className = 'btn btn-primary';
-                btnPatient.className = 'btn btn-secondary';
+                if (regCity) regCity.required = true;
+                if (regState) regState.required = true;
+                if (patientCity) patientCity.required = false;
+                if (patientState) patientState.required = false;
             } else {
                 donorFields.style.display = 'none';
                 patientFields.style.display = 'block';
-                btnDonor.className = 'btn btn-secondary';
-                btnPatient.className = 'btn btn-primary';
+                if (regCity) regCity.required = false;
+                if (regState) regState.required = false;
+                if (patientCity) patientCity.required = true;
+                if (patientState) patientState.required = true;
             }
         }
+
+        // On page load: check URL parameter. If none, show Step 1!
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roleParam = urlParams.get('role');
+            if (roleParam === 'patient' || roleParam === 'donor') {
+                selectRoleAndProceed(roleParam);
+            } else {
+                document.getElementById('step-role-selection').style.display = 'block';
+                document.getElementById('step-profile-setup').style.display = 'none';
+            }
+        });
 
         function captureDonorLocation() {
             const btn = document.getElementById('reg-locate-btn');

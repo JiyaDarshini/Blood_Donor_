@@ -66,7 +66,7 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   background-image: 
     radial-gradient(circle at 15% 15%, rgba(239, 68, 68, 0.03) 0%, transparent 40%),
     radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.03) 0%, transparent 45%);
@@ -88,9 +88,11 @@ a:hover {
    ========================================================================== */
 
 .navbar {
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 1000;
+  width: 100%;
   background: linear-gradient(135deg, #380407 0%, #580c11 40%, #751117 75%, #4c070a 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -100,7 +102,6 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 4px 20px rgba(40, 4, 6, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  position: relative;
   overflow: visible;
 }
 
